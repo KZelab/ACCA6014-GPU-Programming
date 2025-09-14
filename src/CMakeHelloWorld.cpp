@@ -115,17 +115,27 @@ int main() {
     glfwSwapInterval(1);
 
     // =================================================================
-    // STEP 5: Define Triangle Vertex Data with Colour Attributes
+    // STEP 5: Define Square Vertex Data with Indexed Rendering
     // =================================================================
-    // Now each vertex has both position (X,Y,Z) and colour (R,G,B) data.
-    // This is called "interleaved vertex data" - multiple attributes per vertex.
-    // The data is arranged as: Position, Colour, Position, Colour, etc.
+    // Instead of duplicating vertices for a square, we define 4 unique vertices
+    // and use indices to specify which vertices form triangles.
+    // This is more efficient for complex geometry.
+
+    // Define 4 unique vertices for a square
     float vertices[] = {
         // Position        // Colour
         // X      Y     Z     R     G     B
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom left vertex - Red
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom right vertex - Green
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top center vertex - Blue
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // 0: Bottom-left - Red
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // 1: Bottom-right - Green
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // 2: Top-right - Blue
+        -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f   // 3: Top-left - Yellow
+    };
+
+    // Define indices for two triangles that make up the square
+    // Each triangle uses 3 indices pointing to vertices in the array above
+    unsigned int indices[] = {
+        0, 1, 2,   // First triangle: bottom-left, bottom-right, top-right
+        2, 3, 0    // Second triangle: top-right, top-left, bottom-left
     };
 
     // =================================================================
@@ -162,7 +172,20 @@ int main() {
     glEnableVertexAttribArray(1);             // Enable colour attribute
 
     // =================================================================
-    // STEP 8: Define Shader Sources
+    // STEP 8: Create Element Buffer Object (EBO)
+    // =================================================================
+    // An EBO stores indices that tell OpenGL which vertices to use for each triangle.
+    // This allows us to reuse vertices and avoid duplication.
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);                    // Generate an EBO ID
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // Bind as element buffer
+
+    // Upload index data to GPU
+    // GL_STATIC_DRAW because we set indices once and use them many times
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // =================================================================
+    // STEP 9: Define Shader Sources
     // =================================================================
     // Vertex Shader: Processes each vertex, handling position and colour
     std::string vertexShader =
@@ -190,19 +213,19 @@ int main() {
         "}\n";
 
     // =================================================================
-    // STEP 9: Compile and Create Shader Program
+    // STEP 10: Compile and Create Shader Program
     // =================================================================
     unsigned int shaderProgram = CreateShader(vertexShader, fragmentShader);
 
     // =================================================================
-    // STEP 10: Set Clear Color
+    // STEP 11: Set Clear Color
     // =================================================================
     // Set the color that will be used when clearing the screen
     // RGBA values: (Red, Green, Blue, Alpha) - each from 0.0 to 1.0
     glClearColor(0.2f, 0.3f, 0.8f, 1.0f); // Nice blue background
 
     // =================================================================
-    // STEP 11: Main Render Loop
+    // STEP 12: Main Render Loop
     // =================================================================
     // Keep the window open and responsive until the user closes it
     while (!glfwWindowShouldClose(window)) {
@@ -211,7 +234,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // =================================================================
-        // DRAW THE TRIANGLE!
+        // DRAW THE INDEXED SQUARE!
         // =================================================================
 
         // 1. Use our shader program
@@ -220,12 +243,16 @@ int main() {
         // 2. Bind our VAO (this tells OpenGL how to interpret our vertex data)
         glBindVertexArray(VAO);
 
-        // 3. Draw the triangle!
-        // glDrawArrays draws primitives using currently bound VAO
-        // GL_TRIANGLES: draw triangles using every 3 vertices
-        // 0: start at vertex 0
-        // 3: use 3 vertices total (one triangle)
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // 3. Draw using indexed rendering!
+        // glDrawElements draws primitives using indices from the bound EBO
+        // GL_TRIANGLES: draw triangles using every 3 indices
+        // 6: number of indices to draw (2 triangles × 3 indices each)
+        // GL_UNSIGNED_INT: type of indices data
+        // 0: offset into the index array
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // Note: The EBO is automatically bound when we bind the VAO,
+        // so glDrawElements knows which indices to use.
 
         // Swap the front and back buffers (double buffering)
         // This prevents flickering by drawing to a hidden buffer first
@@ -236,20 +263,21 @@ int main() {
     }
 
     // =================================================================
-    // STEP 12: Cleanup OpenGL Resources
+    // STEP 13: Cleanup OpenGL Resources
     // =================================================================
     // Clean up our OpenGL objects
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);              // Clean up Element Buffer Object
     glDeleteProgram(shaderProgram);
 
     // =================================================================
-    // STEP 13: Cleanup GLFW
+    // STEP 14: Cleanup GLFW
     // =================================================================
     // Destroy the window and clean up GLFW resources
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    std::cout << "Triangle rendered successfully! Window closed." << std::endl;
+    std::cout << "Square rendered successfully using indexed rendering! Window closed." << std::endl;
     return 0;
 }
