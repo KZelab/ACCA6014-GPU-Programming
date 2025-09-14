@@ -119,27 +119,57 @@ int main() {
     glfwSwapInterval(1);
 
     // =================================================================
-    // STEP 5: Define Square Vertex Data with Indexed Rendering
+    // STEP 4.5: Enable Depth Testing
     // =================================================================
-    // Instead of duplicating vertices for a square, we define 4 unique vertices
-    // and use indices to specify which vertices form triangles.
-    // This is more efficient for complex geometry.
+    // Enable depth testing for proper 3D rendering
+    glEnable(GL_DEPTH_TEST);
 
-    // Define 4 unique vertices for a square
+    // Set depth function (GL_LESS is default - closer objects pass the test)
+    glDepthFunc(GL_LESS);
+
+    // Enable backface culling for performance (optional)
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);           // Cull back faces
+    glFrontFace(GL_CCW);           // Counter-clockwise vertices = front face
+
+    // =================================================================
+    // STEP 5: Define 3D Cube Vertex Data with Indexed Rendering
+    // =================================================================
+    // A cube has 8 vertices and 6 faces (12 triangles total).
+    // Each vertex has position (X,Y,Z) and colour (R,G,B).
+
+    // Define 8 unique vertices for a cube
     float vertices[] = {
         // Position        // Colour
         // X      Y     Z     R     G     B
-        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // 0: Bottom-left - Red
-         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // 1: Bottom-right - Green
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // 2: Top-right - Blue
-        -0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f   // 3: Top-left - Yellow
+        // Front face vertices
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  // 0: Front-bottom-left - Red
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  // 1: Front-bottom-right - Green
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  // 2: Front-top-right - Blue
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  // 3: Front-top-left - Yellow
+
+        // Back face vertices
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  // 4: Back-bottom-left - Magenta
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  // 5: Back-bottom-right - Cyan
+         0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  // 6: Back-top-right - Orange
+        -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f   // 7: Back-top-left - Grey
     };
 
-    // Define indices for two triangles that make up the square
-    // Each triangle uses 3 indices pointing to vertices in the array above
+    // Define indices for cube faces (12 triangles = 36 indices)
+    // Each face uses 2 triangles, vertices in counter-clockwise order for front-facing
     unsigned int indices[] = {
-        0, 1, 2,   // First triangle: bottom-left, bottom-right, top-right
-        2, 3, 0    // Second triangle: top-right, top-left, bottom-left
+        // Front face (Z = +0.5)
+        0, 1, 2,  2, 3, 0,
+        // Back face (Z = -0.5)
+        4, 5, 6,  6, 7, 4,
+        // Left face (X = -0.5)
+        7, 3, 0,  0, 4, 7,
+        // Right face (X = +0.5)
+        1, 5, 6,  6, 2, 1,
+        // Bottom face (Y = -0.5)
+        4, 0, 1,  1, 5, 4,
+        // Top face (Y = +0.5)
+        3, 7, 6,  6, 2, 3
     };
 
     // =================================================================
@@ -261,8 +291,8 @@ int main() {
     // Keep the window open and responsive until the user closes it
     while (!glfwWindowShouldClose(window)) {
 
-        // Clear the screen with our chosen clear color
-        glClear(GL_COLOR_BUFFER_BIT);
+        // Clear the screen and depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // =================================================================
         // CREATE DYNAMIC TRANSFORMATIONS
@@ -271,48 +301,67 @@ int main() {
         // Get current time for animations
         float currentTime = static_cast<float>(glfwGetTime());
 
-        // Create model matrix with time-based rotation
-        glm::mat4 model = glm::mat4(1.0f);                      // Start with identity matrix
-        model = glm::rotate(model, currentTime, glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate around Z-axis
-
-        // Handle keyboard input for additional transformations
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            model = glm::translate(model, glm::vec3(0.0f, 0.001f, 0.0f));  // Move up
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            model = glm::translate(model, glm::vec3(0.0f, -0.001f, 0.0f)); // Move down
-        }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            model = glm::translate(model, glm::vec3(-0.001f, 0.0f, 0.0f)); // Move left
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            model = glm::translate(model, glm::vec3(0.001f, 0.0f, 0.0f));  // Move right
-        }
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-            model = glm::scale(model, glm::vec3(1.001f, 1.001f, 1.0f));    // Scale up
-        }
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-            model = glm::scale(model, glm::vec3(0.999f, 0.999f, 1.0f));    // Scale down
-        }
-
-        // Combine all transformation matrices: Projection * View * Model
-        glm::mat4 mvp = projection * view * model;
+        // Note: Individual model transformations are now handled per-cube below
 
         // =================================================================
-        // DRAW THE TRANSFORMED SQUARE!
+        // DRAW MULTIPLE CUBES AT DIFFERENT DEPTHS!
         // =================================================================
 
         // 1. Use our shader program
         glUseProgram(shaderProgram);
 
-        // 2. Upload the MVP matrix to the shader
-        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-
         // 3. Bind our VAO (this tells OpenGL how to interpret our vertex data)
         glBindVertexArray(VAO);
 
-        // 4. Draw using indexed rendering!
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // Draw multiple cubes to demonstrate depth testing
+        glm::vec3 cubePositions[] = {
+            glm::vec3( 0.0f,  0.0f,  0.0f),   // Center cube
+            glm::vec3( 2.0f,  0.0f, -1.0f),   // Right cube (further back)
+            glm::vec3(-1.5f, -0.5f, -2.0f),   // Left-bottom cube (furthest back)
+            glm::vec3( 0.5f,  1.5f, 0.5f),    // Right-top cube (closer)
+            glm::vec3(-1.0f,  0.8f, 1.0f)     // Left-top cube (closest)
+        };
+
+        for (unsigned int i = 0; i < 5; i++) {
+            // Create individual model matrix for each cube
+            glm::mat4 cubeModel = glm::mat4(1.0f);
+            cubeModel = glm::translate(cubeModel, cubePositions[i]);
+
+            // Add rotation (different rotation for each cube)
+            float angle = currentTime * (1.0f + i * 0.3f);  // Different speeds
+            cubeModel = glm::rotate(cubeModel, angle, glm::vec3(1.0f + i * 0.2f, 0.3f + i * 0.1f, 0.5f));
+
+            // Apply any additional user transformations to first cube only
+            if (i == 0) {
+                if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                    cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, 0.001f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+                    cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, -0.001f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+                    cubeModel = glm::translate(cubeModel, glm::vec3(-0.001f, 0.0f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+                    cubeModel = glm::translate(cubeModel, glm::vec3(0.001f, 0.0f, 0.0f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+                    cubeModel = glm::scale(cubeModel, glm::vec3(1.001f, 1.001f, 1.001f));
+                }
+                if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+                    cubeModel = glm::scale(cubeModel, glm::vec3(0.999f, 0.999f, 0.999f));
+                }
+            }
+
+            // Calculate MVP matrix for this cube
+            glm::mat4 cubeMvp = projection * view * cubeModel;
+
+            // 2. Upload the MVP matrix to the shader for this cube
+            glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
+
+            // 4. Draw this cube using indexed rendering!
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        }
 
         // Swap the front and back buffers (double buffering)
         glfwSwapBuffers(window);
@@ -337,6 +386,6 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    std::cout << "Animated square with transformations rendered successfully! Window closed." << std::endl;
+    std::cout << "Multiple 3D cubes with depth testing rendered successfully! Window closed." << std::endl;
     return 0;
 }

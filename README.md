@@ -1,313 +1,349 @@
-# Branch: 05-transformations
+# Branch: 06-depth-testing
 
 ## Learning Objective
-Learn 3D transformations and the graphics pipeline by implementing Model-View-Projection matrices. This introduces coordinate systems, matrix mathematics, and interactive controls that form the foundation of all 3D graphics applications.
+Master depth testing and Z-buffer algorithms to render proper 3D scenes with overlapping objects. This branch introduces the depth buffer, 3D geometry creation, and backface culling - essential concepts for any 3D graphics application.
 
 ## What You'll Build
-An animated, interactive square that continuously rotates and responds to keyboard input. The square can be moved with WASD keys and scaled with Q/E, all rendered with proper 3D perspective projection.
+Five rotating 3D cubes positioned at different depths in space, demonstrating proper depth sorting and hidden surface removal. The scene includes backface culling optimisation and interactive controls for the centre cube.
 
-![Expected Result](docs/images/05-animated-square.png)
-*A 960x540 window displaying a rotating rainbow square that responds to keyboard input in 3D space*
+![Expected Result](docs/images/06-depth-testing.png)
+*A 960x540 window displaying 5 rotating multicoloured cubes at various depths, with proper depth testing ensuring correct visibility*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Transformation Matrices**: Mathematical tools for moving, rotating, and scaling objects
-- **Model-View-Projection (MVP)**: The standard 3D graphics pipeline
-- **Coordinate Systems**: Local/Model, World, View, and Clip coordinates
-- **Matrix Multiplication**: How transformations combine and order matters
-- **Uniform Variables**: Passing data from CPU to GPU shaders
-- **Interactive Controls**: Real-time input affecting 3D transformations
-- **Perspective Projection**: Creating realistic 3D depth perception
+- **Depth Buffer (Z-Buffer)**: Hardware-accelerated depth testing for hidden surface removal
+- **Depth Testing Function**: How the GPU determines which fragments are visible
+- **3D Cube Geometry**: Creating proper 3D objects with 8 vertices and 12 triangles
+- **Indexed Vertex Data**: Efficient geometry storage using Element Buffer Objects
+- **Backface Culling**: Performance optimisation by discarding non-visible faces
+- **Winding Order**: Counter-clockwise vertex ordering for front-facing triangles
+- **Multiple Object Rendering**: Drawing several objects with individual transformations
+- **Z-Fighting**: Understanding and preventing depth buffer precision issues
 
 ### OpenGL Functions Introduced:
-- `glGetUniformLocation()` - Find uniform variable locations in shaders
-- `glUniformMatrix4fv()` - Upload matrix data to GPU
-- `glfwGetKey()` - Check keyboard input state
-- `glfwGetTime()` - Get elapsed time for animations
-- `glm::perspective()` - Create perspective projection matrix
-- `glm::lookAt()` - Create view/camera matrix
-- `glm::translate()`, `glm::rotate()`, `glm::scale()` - Transformation functions
-
-### GLM Library Functions:
-- `glm::mat4()` - 4x4 matrix creation
-- `glm::radians()` - Convert degrees to radians
-- `glm::value_ptr()` - Get pointer to matrix data for OpenGL
-- Matrix multiplication with `*` operator
-- Vector creation with `glm::vec3()`
+- `glEnable(GL_DEPTH_TEST)` - Enable depth buffer testing
+- `glDepthFunc(GL_LESS)` - Set depth comparison function
+- `glClear(GL_DEPTH_BUFFER_BIT)` - Clear depth buffer each frame
+- `glEnable(GL_CULL_FACE)` - Enable backface culling
+- `glCullFace(GL_BACK)` - Specify which faces to cull
+- `glFrontFace(GL_CCW)` - Set counter-clockwise as front-facing
 
 ### Technical Terms:
-- **MVP Matrix**: Combined transformation from model to screen coordinates
-- **Model Matrix**: Local object space to world space transformation
-- **View Matrix**: World space to camera/eye space transformation
-- **Projection Matrix**: 3D to 2D screen projection transformation
-- **Uniform**: Global shader variable set from CPU
-- **Identity Matrix**: Neutral transformation (no change)
-- **Homogeneous Coordinates**: 4D vectors for 3D transformations
+- **Depth Buffer**: Per-pixel storage of depth values for visibility determination
+- **Z-Buffer Algorithm**: Classic hidden surface removal technique
+- **Depth Test**: Per-fragment comparison to determine visibility
+- **Backface Culling**: Discarding triangles facing away from the camera
+- **Winding Order**: Clockwise/counter-clockwise vertex arrangement
+- **Element Buffer Object (EBO)**: OpenGL buffer storing vertex indices
+- **Index Buffer**: Alternative name for Element Buffer Object
+- **Near/Far Plane**: Depth range boundaries in perspective projection
+- **Z-Fighting**: Visual artifacts from insufficient depth buffer precision
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp    # Main application with 3D transformations
+├── CMakeHelloWorld.cpp    # Main application with 3D cubes and depth testing
 └── CMakeHelloWorld.h      # Header file (if needed)
 
 Dependencies:
-├── GLM Library            # Mathematics for 3D transformations
-└── OpenGL 3.3+           # Matrix uniform support
+├── OpenGL 3.3+           # Depth testing support
+└── GLM Library           # 3D mathematics and transformations
 ```
 
-### Transformation Pipeline
+### Depth Testing Pipeline
 ```
-Local Coordinates → Model Matrix → World Coordinates
-       ↓
-View Matrix → Camera Coordinates → Projection Matrix → Clip Coordinates
-       ↓
-Perspective Division → Normalized Device Coordinates → Screen Coordinates
+Fragment Generation → Depth Test → Colour Test → Frame Buffer
+                            ↓
+                    Compare fragment depth
+                    with depth buffer value
+                            ↓
+                    Pass: Update colour and depth
+                    Fail: Discard fragment
 ```
 
-### Matrix Multiplication Order
-The order of matrix multiplication is crucial:
-```cpp
-MVP = Projection * View * Model
+### 3D Cube Structure
 ```
-This reads right-to-left: Model → View → Projection
+8 vertices × 6 faces = 12 triangles = 36 indices
+Each vertex: Position (XYZ) + Colour (RGB) = 6 floats
+Total vertex data: 8 × 6 = 48 floats
+Index array: 36 unsigned integers
+```
 
-## What's Different from Previous Branch (04-indexed-rendering)
+## What's Different from Previous Branch (05-transformations)
 
 ### New Additions:
-- **GLM mathematics library** for 3D vector and matrix operations
-- **MVP matrix uniform** passed to vertex shader each frame
-- **Perspective projection** creating realistic 3D depth
-- **View/camera matrix** positioning virtual camera in 3D space
-- **Dynamic model transformations** with rotation animation
-- **Keyboard input handling** for interactive movement and scaling
-- **Time-based animation** using `glfwGetTime()`
+- **Depth testing enabled** with `glEnable(GL_DEPTH_TEST)` and depth buffer clearing
+- **3D cube geometry** replacing flat square with proper 8-vertex cube
+- **Indexed rendering with EBO** for efficient vertex reuse across 12 triangles
+- **Backface culling** optimisation eliminating non-visible triangle faces
+- **Multiple cube instances** positioned at different Z-depths
+- **Per-object transformations** with individual rotation speeds and axes
+- **Proper winding order** ensuring correct front-face determination
 
 ### What Stayed the Same:
-- Indexed square geometry (4 vertices, 6 indices)
-- Vertex attributes (position + colour)
-- Fragment shader (unchanged)
-- VBO/VAO/EBO setup and cleanup
-- Basic render loop structure
+- MVP transformation pipeline (Model-View-Projection matrices)
+- Vertex shader with transformation matrix uniform
+- Fragment shader with interpolated colours
+- Keyboard input handling (WASD + Q/E controls)
+- Time-based rotation animation
+- GLFW window management and OpenGL context setup
 
 ## Understanding the Code
 
-### The Graphics Pipeline Transformation
+### Depth Testing Setup
 
-**1. Model Matrix (Local → World Space):**
+**1. Enable Depth Testing:**
 ```cpp
-glm::mat4 model = glm::mat4(1.0f);  // Identity matrix (no transformation)
-model = glm::rotate(model, currentTime, glm::vec3(0.0f, 0.0f, 1.0f));
-```
-Transforms vertices from the object's local coordinate system to world coordinates.
-
-**2. View Matrix (World → Camera Space):**
-```cpp
-glm::mat4 view = glm::lookAt(
-    glm::vec3(0.0f, 0.0f, 3.0f),   // Camera position (3 units back)
-    glm::vec3(0.0f, 0.0f, 0.0f),   // Look at origin
-    glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector (Y-axis)
-);
-```
-Simulates placing a camera in the 3D world.
-
-**3. Projection Matrix (Camera → Screen Space):**
-```cpp
-glm::mat4 projection = glm::perspective(
-    glm::radians(45.0f),    // 45-degree field of view
-    960.0f / 540.0f,        // Aspect ratio (width/height)
-    0.1f,                   // Near clipping plane
-    100.0f                  // Far clipping plane
-);
-```
-Creates perspective distortion - objects further away appear smaller.
-
-### Matrix Uniform Upload
-
-```cpp
-// Get uniform location (do this once, outside render loop)
-int mvpLocation = glGetUniformLocation(shaderProgram, "u_MVP");
-
-// Upload matrix each frame (inside render loop)
-glm::mat4 mvp = projection * view * model;
-glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+glEnable(GL_DEPTH_TEST);        // Enable depth buffer testing
+glDepthFunc(GL_LESS);           // Fragments pass if closer to camera
 ```
 
-### Keyboard Controls Implementation
+**2. Clear Depth Buffer Each Frame:**
+```cpp
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear both colour and depth
+```
+
+### 3D Cube Vertex Data
+
+**Cube Vertices (8 unique points):**
+```cpp
+float vertices[] = {
+    // Position        // Colour
+    // X      Y     Z     R     G     B
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  // 0: Front-bottom-left - Red
+     0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  // 1: Front-bottom-right - Green
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  // 2: Front-top-right - Blue
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  // 3: Front-top-left - Yellow
+
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  // 4: Back-bottom-left - Magenta
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  // 5: Back-bottom-right - Cyan
+     0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  // 6: Back-top-right - Orange
+    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f   // 7: Back-top-left - Grey
+};
+```
+
+**Cube Indices (12 triangles, counter-clockwise winding):**
+```cpp
+unsigned int indices[] = {
+    // Front face (Z = +0.5)
+    0, 1, 2,  2, 3, 0,
+    // Back face (Z = -0.5)
+    4, 5, 6,  6, 7, 4,
+    // Left face (X = -0.5)
+    7, 3, 0,  0, 4, 7,
+    // Right face (X = +0.5)
+    1, 5, 6,  6, 2, 1,
+    // Bottom face (Y = -0.5)
+    4, 0, 1,  1, 5, 4,
+    // Top face (Y = +0.5)
+    3, 7, 6,  6, 2, 3
+};
+```
+
+### Backface Culling Implementation
 
 ```cpp
-if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    model = glm::translate(model, glm::vec3(0.0f, 0.001f, 0.0f));  // Small upward movement
+glEnable(GL_CULL_FACE);         // Enable culling
+glCullFace(GL_BACK);            // Cull back-facing triangles
+glFrontFace(GL_CCW);            // Counter-clockwise = front face
+```
+
+### Multiple Object Rendering
+
+```cpp
+glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f),   // Center cube
+    glm::vec3( 2.0f,  0.0f, -1.0f),   // Right cube (further back)
+    glm::vec3(-1.5f, -0.5f, -2.0f),   // Left-bottom cube (furthest back)
+    glm::vec3( 0.5f,  1.5f, 0.5f),    // Right-top cube (closer)
+    glm::vec3(-1.0f,  0.8f, 1.0f)     // Left-top cube (closest)
+};
+
+for (unsigned int i = 0; i < 5; i++) {
+    // Individual model matrix per cube
+    glm::mat4 cubeModel = glm::mat4(1.0f);
+    cubeModel = glm::translate(cubeModel, cubePositions[i]);
+
+    // Different rotation speed and axis for each cube
+    float angle = currentTime * (1.0f + i * 0.3f);
+    cubeModel = glm::rotate(cubeModel, angle, glm::vec3(1.0f + i * 0.2f, 0.3f + i * 0.1f, 0.5f));
+
+    glm::mat4 cubeMvp = projection * view * cubeModel;
+    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 ```
-Small incremental movements accumulate over frames for smooth motion.
 
 ## Try These Experiments
 
 ### Beginner Challenges:
-1. **Change rotation axis** - Rotate around different axes:
+1. **Disable depth testing** to see Z-fighting:
    ```cpp
-   // Rotate around X-axis (like a wheel)
-   model = glm::rotate(model, currentTime, glm::vec3(1.0f, 0.0f, 0.0f));
+   // Comment out this line temporarily
+   // glEnable(GL_DEPTH_TEST);
+   ```
+   Notice how cubes flicker and render incorrectly.
 
-   // Rotate around Y-axis (like a spinning top)
-   model = glm::rotate(model, currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
+2. **Change depth function**:
+   ```cpp
+   glDepthFunc(GL_GREATER);  // Further objects pass the test (inverted)
    ```
 
-2. **Modify rotation speed**:
+3. **Disable backface culling**:
    ```cpp
-   float rotationSpeed = 2.0f;  // 2x faster
-   model = glm::rotate(model, currentTime * rotationSpeed, glm::vec3(0.0f, 0.0f, 1.0f));
+   // Comment out culling setup
+   // glEnable(GL_CULL_FACE);
    ```
-
-3. **Change camera position**:
-   ```cpp
-   // Camera looking from the side
-   glm::mat4 view = glm::lookAt(
-       glm::vec3(3.0f, 0.0f, 0.0f),   // Camera to the right
-       glm::vec3(0.0f, 0.0f, 0.0f),   // Still looking at origin
-       glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector unchanged
-   );
-   ```
+   See the performance impact and interior faces.
 
 ### Intermediate Challenges:
-1. **Add oscillating scale animation**:
+1. **Add more cubes in a grid pattern**:
    ```cpp
-   float scaleAmount = 1.0f + 0.3f * sin(currentTime * 2.0f);  // Oscillate between 0.7 and 1.3
-   model = glm::scale(model, glm::vec3(scaleAmount, scaleAmount, 1.0f));
+   for (int x = -2; x <= 2; x++) {
+       for (int z = -2; z <= 2; z++) {
+           glm::vec3 position(x * 2.0f, 0.0f, z * 2.0f);
+           // Create model matrix and render cube
+       }
+   }
    ```
 
-2. **Create orbital motion**:
+2. **Create depth-dependent colouring**:
    ```cpp
-   float radius = 1.5f;
-   glm::vec3 orbitPosition = glm::vec3(
-       radius * cos(currentTime),
-       radius * sin(currentTime),
-       0.0f
-   );
-   model = glm::translate(model, orbitPosition);
+   // In vertex shader, pass depth to fragment shader
+   float depthColor = (gl_Position.z + 1.0) * 0.5;  // Normalize depth
+   vertexColour = mix(aColour, vec3(depthColor), 0.3);  // Blend with depth
    ```
 
-3. **Implement mouse look camera**:
+3. **Implement wireframe mode toggle**:
    ```cpp
-   // Get mouse position and convert to camera angles
-   double mouseX, mouseY;
-   glfwGetCursorPos(window, &mouseX, &mouseY);
-
-   float yaw = (mouseX / 960.0f) * 2.0f * 3.14159f;     // Full circle
-   float pitch = (mouseY / 540.0f) * 3.14159f - 1.57f;  // +/- 90 degrees
-
-   glm::vec3 cameraPos = glm::vec3(
-       3.0f * cos(pitch) * cos(yaw),
-       3.0f * sin(pitch),
-       3.0f * cos(pitch) * sin(yaw)
-   );
-
-   view = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+   if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // Wireframe
+   } else {
+       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // Solid
+   }
    ```
 
 ### Advanced Challenges:
-1. **Multiple objects** - Render several squares with different transformations
-2. **Hierarchical transformations** - Parent-child object relationships
-3. **Smooth input handling** - Implement acceleration and deceleration
-4. **Camera animation** - Automatic camera movement around the scene
+1. **Implement depth buffer visualisation**:
+   - Create a separate shader that renders depth values as grayscale
+   - Use second render pass to display depth buffer contents
+
+2. **Add transparent objects**:
+   - Disable depth writing for transparent objects
+   - Sort transparent objects back-to-front for correct blending
+
+3. **Create shadow mapping**:
+   - Render scene from light's perspective to depth texture
+   - Use depth texture for shadow calculations in main render
 
 ## Common Issues & Solutions
 
-### "Square not visible or distorted"
-**Possible Causes & Solutions:**
-- **Wrong matrix order**: Ensure `MVP = projection * view * model` (not the reverse)
-- **Camera too close/far**: Adjust camera position in `glm::lookAt()`
-- **Wrong field of view**: Try different angles in `glm::perspective()`
-- **Aspect ratio mismatch**: Use actual window width/height ratio
+### "Cubes rendering in wrong order"
+**Depth Testing Problems:**
+- **Depth test disabled**: Ensure `glEnable(GL_DEPTH_TEST)` is called
+- **Depth buffer not cleared**: Add `GL_DEPTH_BUFFER_BIT` to `glClear()`
+- **Wrong depth function**: Check `glDepthFunc()` setting (GL_LESS is standard)
+- **Near/far plane issues**: Adjust perspective projection parameters
 
-### "Animation too fast or slow"
-**Timing Issues:**
-- **Frame rate dependent**: Use `deltaTime` instead of fixed increments
-- **Rotation speed**: Multiply `currentTime` by a speed factor
-- **Input sensitivity**: Adjust movement amounts in keyboard handling
+### "Z-fighting artifacts"
+**Depth Precision Issues:**
+- **Objects too close**: Increase separation between cube positions
+- **Near plane too close**: Increase near plane distance in `glm::perspective()`
+- **Far plane too far**: Decrease far plane distance for better precision
+- **Insufficient depth bits**: Check depth buffer bit depth (usually 24-bit)
 
-### "Matrix uniform not updating"
-**Uniform Upload Problems:**
-- **Location not found**: Check `glGetUniformLocation()` return value (-1 = not found)
-- **Wrong shader active**: Call `glUseProgram()` before `glUniformMatrix4fv()`
-- **Shader compilation error**: Uniform might be optimised away if unused
+### "Cubes appear inside-out"
+**Winding Order Problems:**
+- **Wrong face orientation**: Ensure indices use counter-clockwise winding
+- **Culling incorrect faces**: Check `glCullFace()` and `glFrontFace()` settings
+- **Inside-out geometry**: Verify vertex positions and normal directions
 
-### "Keyboard input not responsive"
-**Input Handling Issues:**
-- **Polling location**: Call `glfwPollEvents()` in render loop
-- **Key state persistence**: Keys need to be held down, not just pressed once
-- **Movement amounts**: Might be too small to see (increase values for testing)
+### "Poor performance with many cubes"
+**Rendering Optimisation:**
+- **Backface culling disabled**: Enable `GL_CULL_FACE` for ~50% triangle reduction
+- **Too many draw calls**: Consider instanced rendering for many identical objects
+- **Excessive overdraw**: Use depth pre-pass or early-Z testing
+- **Fragment shader complexity**: Optimise fragment shader for better GPU performance
 
 ## What's Next?
 
-In the next branch (`06-depth-testing`), we'll:
-- Learn about **depth buffers** and Z-testing for proper 3D rendering
-- Understand **depth function** and **depth writing**
-- Implement **multiple overlapping objects** that render correctly
-- Create **3D cube geometry** instead of flat squares
-- Explore **backface culling** and **winding order**
+In the next branch (`07-texturing`), we'll:
+- Learn about **texture mapping** and UV coordinates for detailed surfaces
+- Implement **texture loading** from image files (PNG, JPG)
+- Understand **texture filtering** (nearest, linear, mipmapping)
+- Apply **multiple textures** to different cube faces
+- Explore **texture wrapping modes** and coordinate systems
+- Create **textured 3D objects** with realistic surface detail
 
 ## Resources for Deeper Learning
 
 ### Essential Reading:
-- [LearnOpenGL - Transformations](https://learnopengl.com/Getting-started/Transformations)
-- [OpenGL Wiki - Uniform](https://www.khronos.org/opengl/wiki/Uniform_(GLSL))
-- [GLM Documentation](https://glm.g-truc.net/0.9.9/index.html)
+- [LearnOpenGL - Depth Testing](https://learnopengl.com/Advanced-OpenGL/Depth-testing)
+- [OpenGL Wiki - Depth Buffer](https://www.khronos.org/opengl/wiki/Depth_Buffer)
+- [Real-Time Rendering - Z-Buffer Algorithm](http://www.realtimerendering.com/)
 
 ### Video Tutorials:
-- [The Cherno OpenGL - Matrices](https://www.youtube.com/watch?v=LhQ85bkQpGk)
-- [3Blue1Brown - Linear Transformations](https://www.youtube.com/watch?v=kYB8IZa5AuE)
+- [The Cherno OpenGL - Depth Testing](https://www.youtube.com/watch?v=poHDHe1Kjno)
+- [3D Graphics Fundamentals - Hidden Surface Removal](https://www.youtube.com/results?search_query=z+buffer+algorithm)
 
 ### Deep Dive Topics:
-- Linear algebra foundations for computer graphics
-- Quaternions for rotation representation
-- Matrix decomposition and inverse transformations
-- Gimbal lock and rotation interpolation
-- Camera control systems and movement patterns
+- Z-buffer algorithm implementation and optimisation
+- Early-Z testing and hierarchical Z-buffers
+- Depth buffer precision and floating-point formats
+- Shadow mapping and depth-based techniques
+- Depth peeling for order-independent transparency
+- Reverse Z-buffer for improved precision
 
 ### Tools for Development:
-- **RenderDoc**: Visualise transformation matrices and uniform values
-- **Linear Algebra Visualizers**: Understand matrix transformations graphically
-- **GLM Documentation**: Complete reference for all mathematics functions
+- **RenderDoc**: Visualise depth buffer contents and depth testing
+- **Graphics Debugger**: Step through depth test operations
+- **GPU Profiler**: Analyse depth testing performance impact
 
 ## Debug Tips
 
-### Checking Uniform Locations:
+### Checking Depth Test State:
 ```cpp
-int mvpLocation = glGetUniformLocation(shaderProgram, "u_MVP");
-if (mvpLocation == -1) {
-    std::cout << "Error: u_MVP uniform not found!" << std::endl;
+GLboolean depthTestEnabled;
+glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
+if (!depthTestEnabled) {
+    std::cout << "Warning: Depth testing is disabled!" << std::endl;
 }
 ```
 
-### Debugging Matrix Values:
+### Debugging Index Buffer:
 ```cpp
-// Print matrix for debugging
-glm::mat4 mvp = projection * view * model;
-for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-        std::cout << mvp[i][j] << " ";
-    }
-    std::cout << std::endl;
+// Print indices to verify winding order
+for (int i = 0; i < 36; i += 3) {
+    std::cout << "Triangle " << i/3 << ": "
+              << indices[i] << ", " << indices[i+1] << ", " << indices[i+2] << std::endl;
 }
 ```
 
-### Verifying Transformations:
+### Visualising Depth Values:
 ```cpp
-// Test with identity matrix (should render normally)
-glm::mat4 mvp = glm::mat4(1.0f);  // No transformation
-glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+// In fragment shader - output depth as colour
+float depth = gl_FragCoord.z;
+FragColor = vec4(depth, depth, depth, 1.0);  // Grayscale depth
 ```
 
-### Common Matrix Mistakes:
-- Forgetting to multiply matrices in correct order (P * V * M)
-- Using degrees instead of radians in GLM functions
-- Not updating uniforms every frame for animations
-- Applying transformations in wrong coordinate space
+### Testing Face Culling:
+```cpp
+// Temporarily disable culling to see all faces
+glDisable(GL_CULL_FACE);
+// Or switch to front face culling to see backfaces only
+glCullFace(GL_FRONT);
+```
+
+### Common Depth Testing Mistakes:
+- Forgetting to enable depth testing before rendering
+- Not clearing the depth buffer each frame
+- Using wrong depth comparison function
+- Incorrect near/far plane ratios causing precision loss
+- Wrong vertex winding order causing backface culling issues
 
 ---
 
-**Congratulations!** You've successfully implemented 3D transformations and the graphics pipeline! Understanding the Model-View-Projection matrix chain is fundamental to all 3D graphics programming. Every 3D game, CAD application, and visualization tool uses these same mathematical principles to position and display objects in 3D space.
+**Congratulations!** You've successfully implemented depth testing and 3D cube rendering! Understanding the depth buffer is crucial for any 3D application - from games to CAD software to scientific visualisation. The Z-buffer algorithm you've implemented is the foundation of modern 3D graphics hardware acceleration.
