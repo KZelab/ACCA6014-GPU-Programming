@@ -1,349 +1,390 @@
-# Branch: 06-depth-testing
+# Branch: 07-texturing
 
 ## Learning Objective
-Master depth testing and Z-buffer algorithms to render proper 3D scenes with overlapping objects. This branch introduces the depth buffer, 3D geometry creation, and backface culling - essential concepts for any 3D graphics application.
+Master texture mapping and UV coordinate systems to apply detailed surface patterns to 3D objects. This branch introduces texture creation, sampling, coordinate systems, and filtering modes - fundamental techniques for creating realistic and visually appealing 3D graphics.
 
 ## What You'll Build
-Five rotating 3D cubes positioned at different depths in space, demonstrating proper depth sorting and hidden surface removal. The scene includes backface culling optimisation and interactive controls for the centre cube.
+Five rotating 3D cubes with alternating procedural textures - checkerboard and gradient patterns. The implementation demonstrates texture binding, UV coordinate mapping, and shader-based texture sampling with colour blending.
 
-![Expected Result](docs/images/06-depth-testing.png)
-*A 960x540 window displaying 5 rotating multicoloured cubes at various depths, with proper depth testing ensuring correct visibility*
+![Expected Result](docs/images/07-texturing.png)
+*A 960x540 window displaying 5 rotating cubes with alternating checkerboard and gradient textures*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Depth Buffer (Z-Buffer)**: Hardware-accelerated depth testing for hidden surface removal
-- **Depth Testing Function**: How the GPU determines which fragments are visible
-- **3D Cube Geometry**: Creating proper 3D objects with 8 vertices and 12 triangles
-- **Indexed Vertex Data**: Efficient geometry storage using Element Buffer Objects
-- **Backface Culling**: Performance optimisation by discarding non-visible faces
-- **Winding Order**: Counter-clockwise vertex ordering for front-facing triangles
-- **Multiple Object Rendering**: Drawing several objects with individual transformations
-- **Z-Fighting**: Understanding and preventing depth buffer precision issues
+- **Texture Mapping**: Applying 2D images to 3D surface geometry
+- **UV Coordinates**: 2D texture coordinate system (U=horizontal, V=vertical)
+- **Texture Sampling**: Reading colour values from textures in fragment shaders
+- **Procedural Textures**: Generating texture patterns algorithmically
+- **Texture Parameters**: Wrapping modes and filtering options
+- **Texture Units**: Managing multiple textures in OpenGL
+- **Texture Blending**: Combining texture colours with vertex colours
+- **Texture Memory Management**: Creating, binding, and deleting textures
 
 ### OpenGL Functions Introduced:
-- `glEnable(GL_DEPTH_TEST)` - Enable depth buffer testing
-- `glDepthFunc(GL_LESS)` - Set depth comparison function
-- `glClear(GL_DEPTH_BUFFER_BIT)` - Clear depth buffer each frame
-- `glEnable(GL_CULL_FACE)` - Enable backface culling
-- `glCullFace(GL_BACK)` - Specify which faces to cull
-- `glFrontFace(GL_CCW)` - Set counter-clockwise as front-facing
+- `glGenTextures()` - Generate texture object IDs
+- `glBindTexture()` - Bind texture as current active texture
+- `glTexImage2D()` - Upload texture data to GPU memory
+- `glTexParameteri()` - Set texture filtering and wrapping parameters
+- `glUniform1i()` - Set texture sampler uniform values
+- `glDeleteTextures()` - Clean up texture memory
+
+### GLSL Functions Introduced:
+- `texture()` - Sample colour from texture at UV coordinates
+- `sampler2D` - GLSL texture sampler uniform type
 
 ### Technical Terms:
-- **Depth Buffer**: Per-pixel storage of depth values for visibility determination
-- **Z-Buffer Algorithm**: Classic hidden surface removal technique
-- **Depth Test**: Per-fragment comparison to determine visibility
-- **Backface Culling**: Discarding triangles facing away from the camera
-- **Winding Order**: Clockwise/counter-clockwise vertex arrangement
-- **Element Buffer Object (EBO)**: OpenGL buffer storing vertex indices
-- **Index Buffer**: Alternative name for Element Buffer Object
-- **Near/Far Plane**: Depth range boundaries in perspective projection
-- **Z-Fighting**: Visual artifacts from insufficient depth buffer precision
+- **UV Coordinates**: 2D texture space coordinates, typically ranging 0.0 to 1.0
+- **Texture Atlas**: Single texture containing multiple sub-textures
+- **Texture Unit**: Hardware slot for binding textures (GL_TEXTURE0, GL_TEXTURE1, etc.)
+- **Texture Filtering**: Method for interpolating between texture pixels (nearest, linear)
+- **Texture Wrapping**: Behaviour at texture boundaries (repeat, clamp, mirror)
+- **Texel**: Single pixel in a texture (texture element)
+- **Mipmapping**: Pre-computed lower resolution versions for distant objects
+- **Anisotropic Filtering**: Advanced filtering for textures viewed at steep angles
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp    # Main application with 3D cubes and depth testing
+├── CMakeHelloWorld.cpp    # Main application with textured 3D cubes
 └── CMakeHelloWorld.h      # Header file (if needed)
 
 Dependencies:
-├── OpenGL 3.3+           # Depth testing support
+├── OpenGL 3.3+           # Texture mapping support
 └── GLM Library           # 3D mathematics and transformations
 ```
 
-### Depth Testing Pipeline
+### Texture Pipeline
 ```
-Fragment Generation → Depth Test → Colour Test → Frame Buffer
-                            ↓
-                    Compare fragment depth
-                    with depth buffer value
-                            ↓
-                    Pass: Update colour and depth
-                    Fail: Discard fragment
+Texture Creation → GPU Upload → Shader Binding → UV Sampling → Colour Output
+       ↓              ↓            ↓             ↓            ↓
+   glGenTextures   glTexImage2D   glBindTexture  texture()   FragColor
 ```
 
-### 3D Cube Structure
+### Vertex Data Structure
 ```
-8 vertices × 6 faces = 12 triangles = 36 indices
-Each vertex: Position (XYZ) + Colour (RGB) = 6 floats
-Total vertex data: 8 × 6 = 48 floats
-Index array: 36 unsigned integers
+Each vertex: Position (XYZ) + Colour (RGB) + UV (UV) = 8 floats
+Vertex layout: [X, Y, Z, R, G, B, U, V]
+Total cube data: 8 vertices × 8 floats = 64 floats
 ```
 
-## What's Different from Previous Branch (05-transformations)
+## What's Different from Previous Branch (06-depth-testing)
 
 ### New Additions:
-- **Depth testing enabled** with `glEnable(GL_DEPTH_TEST)` and depth buffer clearing
-- **3D cube geometry** replacing flat square with proper 8-vertex cube
-- **Indexed rendering with EBO** for efficient vertex reuse across 12 triangles
-- **Backface culling** optimisation eliminating non-visible triangle faces
-- **Multiple cube instances** positioned at different Z-depths
-- **Per-object transformations** with individual rotation speeds and axes
-- **Proper winding order** ensuring correct front-face determination
+- **UV texture coordinates** added to vertex data (2 floats per vertex)
+- **Procedural texture generation** with checkerboard and gradient patterns
+- **Texture sampler uniforms** in fragment shader for texture access
+- **Texture binding and management** in render loop
+- **Texture filtering parameters** (nearest vs linear interpolation)
+- **Multiple texture support** with alternating patterns per cube
+- **Texture memory cleanup** in application shutdown
 
 ### What Stayed the Same:
-- MVP transformation pipeline (Model-View-Projection matrices)
-- Vertex shader with transformation matrix uniform
-- Fragment shader with interpolated colours
-- Keyboard input handling (WASD + Q/E controls)
-- Time-based rotation animation
-- GLFW window management and OpenGL context setup
+- 3D cube geometry with 8 vertices and indexed rendering
+- Depth testing and backface culling optimisations
+- MVP transformation pipeline and camera setup
+- Multiple cube rendering with individual transformations
+- Keyboard input controls for interactive movement
 
 ## Understanding the Code
 
-### Depth Testing Setup
+### UV Coordinate Mapping
 
-**1. Enable Depth Testing:**
-```cpp
-glEnable(GL_DEPTH_TEST);        // Enable depth buffer testing
-glDepthFunc(GL_LESS);           // Fragments pass if closer to camera
-```
-
-**2. Clear Depth Buffer Each Frame:**
-```cpp
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear both colour and depth
-```
-
-### 3D Cube Vertex Data
-
-**Cube Vertices (8 unique points):**
+**Vertex Data with UV Coordinates:**
 ```cpp
 float vertices[] = {
-    // Position        // Colour
-    // X      Y     Z     R     G     B
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  // 0: Front-bottom-left - Red
-     0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  // 1: Front-bottom-right - Green
-     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  // 2: Front-top-right - Blue
-    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  // 3: Front-top-left - Yellow
-
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  // 4: Back-bottom-left - Magenta
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  // 5: Back-bottom-right - Cyan
-     0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  // 6: Back-top-right - Orange
-    -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f   // 7: Back-top-left - Grey
+    // Position        // Colour             // UV
+    // X      Y     Z     R     G     B      U     V
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
+     0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // Bottom-right
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  // Top-right
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
 };
 ```
 
-**Cube Indices (12 triangles, counter-clockwise winding):**
+**Vertex Attribute Configuration:**
 ```cpp
-unsigned int indices[] = {
-    // Front face (Z = +0.5)
-    0, 1, 2,  2, 3, 0,
-    // Back face (Z = -0.5)
-    4, 5, 6,  6, 7, 4,
-    // Left face (X = -0.5)
-    7, 3, 0,  0, 4, 7,
-    // Right face (X = +0.5)
-    1, 5, 6,  6, 2, 1,
-    // Bottom face (Y = -0.5)
-    4, 0, 1,  1, 5, 4,
-    // Top face (Y = +0.5)
-    3, 7, 6,  6, 2, 3
-};
+// Position attribute (location = 0)
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+// Colour attribute (location = 1)
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+// Texture coordinate attribute (location = 2)
+glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 ```
 
-### Backface Culling Implementation
+### Procedural Texture Generation
 
+**Checkerboard Pattern:**
 ```cpp
-glEnable(GL_CULL_FACE);         // Enable culling
-glCullFace(GL_BACK);            // Cull back-facing triangles
-glFrontFace(GL_CCW);            // Counter-clockwise = front face
+unsigned int CreateCheckerboardTexture() {
+    const int width = 8, height = 8;
+    unsigned char textureData[width * height * 3];
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            bool isWhite = ((x + y) % 2) == 0;
+            unsigned char color = isWhite ? 255 : 64;
+
+            int index = (y * width + x) * 3;
+            textureData[index + 0] = color; // Red
+            textureData[index + 1] = color; // Green
+            textureData[index + 2] = color; // Blue
+        }
+    }
+
+    // Upload to GPU and set parameters...
+}
 ```
 
-### Multiple Object Rendering
+**Gradient Pattern:**
+```cpp
+unsigned int CreateGradientTexture() {
+    const int width = 16, height = 16;
+    unsigned char textureData[width * height * 3];
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            unsigned char red = (255 * x) / (width - 1);   // Horizontal gradient
+            unsigned char blue = (255 * y) / (height - 1);  // Vertical gradient
+            unsigned char green = 128;                       // Constant
+
+            int index = (y * width + x) * 3;
+            textureData[index + 0] = red;
+            textureData[index + 1] = green;
+            textureData[index + 2] = blue;
+        }
+    }
+
+    // Upload to GPU and set parameters...
+}
+```
+
+### Shader Texture Sampling
+
+**Vertex Shader (passes UV coordinates):**
+```glsl
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColour;
+layout (location = 2) in vec2 aTexCoord;
+
+uniform mat4 u_MVP;
+
+out vec3 vertexColour;
+out vec2 texCoord;
+
+void main() {
+    gl_Position = u_MVP * vec4(aPos, 1.0);
+    vertexColour = aColour;
+    texCoord = aTexCoord;   // Pass UV to fragment shader
+}
+```
+
+**Fragment Shader (samples texture):**
+```glsl
+#version 330 core
+in vec3 vertexColour;
+in vec2 texCoord;
+
+uniform sampler2D u_Texture;
+out vec4 FragColor;
+
+void main() {
+    vec4 texColor = texture(u_Texture, texCoord);  // Sample texture
+    FragColor = texColor * vec4(vertexColour, 1.0);  // Blend with vertex colour
+}
+```
+
+### Texture Binding in Render Loop
 
 ```cpp
-glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),   // Center cube
-    glm::vec3( 2.0f,  0.0f, -1.0f),   // Right cube (further back)
-    glm::vec3(-1.5f, -0.5f, -2.0f),   // Left-bottom cube (furthest back)
-    glm::vec3( 0.5f,  1.5f, 0.5f),    // Right-top cube (closer)
-    glm::vec3(-1.0f,  0.8f, 1.0f)     // Left-top cube (closest)
-};
-
 for (unsigned int i = 0; i < 5; i++) {
-    // Individual model matrix per cube
-    glm::mat4 cubeModel = glm::mat4(1.0f);
-    cubeModel = glm::translate(cubeModel, cubePositions[i]);
+    // Alternate between textures for visual variety
+    if (i % 2 == 0) {
+        glBindTexture(GL_TEXTURE_2D, checkerboardTexture);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, gradientTexture);
+    }
+    glUniform1i(textureLocation, 0);  // Use texture unit 0
 
-    // Different rotation speed and axis for each cube
-    float angle = currentTime * (1.0f + i * 0.3f);
-    cubeModel = glm::rotate(cubeModel, angle, glm::vec3(1.0f + i * 0.2f, 0.3f + i * 0.1f, 0.5f));
-
-    glm::mat4 cubeMvp = projection * view * cubeModel;
-    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    // Transform and draw cube...
 }
 ```
 
 ## Try These Experiments
 
 ### Beginner Challenges:
-1. **Disable depth testing** to see Z-fighting:
+1. **Modify UV coordinates** to scale textures:
    ```cpp
-   // Comment out this line temporarily
-   // glEnable(GL_DEPTH_TEST);
-   ```
-   Notice how cubes flicker and render incorrectly.
-
-2. **Change depth function**:
-   ```cpp
-   glDepthFunc(GL_GREATER);  // Further objects pass the test (inverted)
+   // Double texture repeat by scaling UV coordinates
+   -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // Scale to 2.0, 2.0
+    0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  2.0f, 0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  2.0f, 2.0f,
+   -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 2.0f,
    ```
 
-3. **Disable backface culling**:
+2. **Change texture filtering**:
    ```cpp
-   // Comment out culling setup
-   // glEnable(GL_CULL_FACE);
+   // Switch from nearest (pixelated) to linear (smooth)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
    ```
-   See the performance impact and interior faces.
+
+3. **Experiment with wrapping modes**:
+   ```cpp
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+   ```
 
 ### Intermediate Challenges:
-1. **Add more cubes in a grid pattern**:
+1. **Create animated UV coordinates**:
    ```cpp
-   for (int x = -2; x <= 2; x++) {
-       for (int z = -2; z <= 2; z++) {
-           glm::vec3 position(x * 2.0f, 0.0f, z * 2.0f);
-           // Create model matrix and render cube
+   // In vertex shader
+   vec2 animatedUV = aTexCoord + vec2(u_Time * 0.1, 0.0);  // Scrolling texture
+   texCoord = animatedUV;
+   ```
+
+2. **Add more procedural patterns**:
+   ```cpp
+   unsigned int CreateCircleTexture() {
+       // Create concentric circles pattern
+       for (int y = 0; y < height; y++) {
+           for (int x = 0; x < width; x++) {
+               float centerX = width * 0.5f;
+               float centerY = height * 0.5f;
+               float distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+               unsigned char intensity = (unsigned char)(255 * (sin(distance * 0.5f) * 0.5f + 0.5f));
+           }
        }
    }
    ```
 
-2. **Create depth-dependent colouring**:
+3. **Implement texture atlasing**:
    ```cpp
-   // In vertex shader, pass depth to fragment shader
-   float depthColor = (gl_Position.z + 1.0) * 0.5;  // Normalize depth
-   vertexColour = mix(aColour, vec3(depthColor), 0.3);  // Blend with depth
-   ```
-
-3. **Implement wireframe mode toggle**:
-   ```cpp
-   if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // Wireframe
-   } else {
-       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // Solid
-   }
+   // Use different UV regions for different cube faces
+   vec2 atlasUV = aTexCoord * 0.25;  // Scale to quarter size
+   if (faceID == 1) atlasUV.x += 0.25;  // Offset for different faces
+   if (faceID == 2) atlasUV.y += 0.25;
    ```
 
 ### Advanced Challenges:
-1. **Implement depth buffer visualisation**:
-   - Create a separate shader that renders depth values as grayscale
-   - Use second render pass to display depth buffer contents
+1. **Load textures from image files**:
+   - Integrate image loading library (stb_image, SOIL, etc.)
+   - Support PNG, JPG, BMP formats
+   - Handle different colour formats (RGB, RGBA)
 
-2. **Add transparent objects**:
-   - Disable depth writing for transparent objects
-   - Sort transparent objects back-to-front for correct blending
+2. **Implement multi-texturing**:
+   - Bind multiple textures simultaneously
+   - Blend between different texture layers
+   - Use alpha channels for transparency
 
-3. **Create shadow mapping**:
-   - Render scene from light's perspective to depth texture
-   - Use depth texture for shadow calculations in main render
+3. **Add normal mapping preparation**:
+   - Create tangent space vectors
+   - Prepare for bump mapping and normal mapping
+   - Calculate proper coordinate systems per face
 
 ## Common Issues & Solutions
 
-### "Cubes rendering in wrong order"
-**Depth Testing Problems:**
-- **Depth test disabled**: Ensure `glEnable(GL_DEPTH_TEST)` is called
-- **Depth buffer not cleared**: Add `GL_DEPTH_BUFFER_BIT` to `glClear()`
-- **Wrong depth function**: Check `glDepthFunc()` setting (GL_LESS is standard)
-- **Near/far plane issues**: Adjust perspective projection parameters
+### "Textures appear black or white"
+**Texture Binding Problems:**
+- **Texture not bound**: Ensure `glBindTexture()` is called before drawing
+- **Uniform not set**: Check `glUniform1i(textureLocation, 0)` is called
+- **Wrong texture unit**: Verify texture unit matches uniform value
+- **Texture not generated**: Confirm `glGenTextures()` and `glTexImage2D()` succeed
 
-### "Z-fighting artifacts"
-**Depth Precision Issues:**
-- **Objects too close**: Increase separation between cube positions
-- **Near plane too close**: Increase near plane distance in `glm::perspective()`
-- **Far plane too far**: Decrease far plane distance for better precision
-- **Insufficient depth bits**: Check depth buffer bit depth (usually 24-bit)
+### "Textures appear stretched or distorted"
+**UV Coordinate Issues:**
+- **Wrong UV values**: Ensure UV coordinates range from 0.0 to 1.0 for normal mapping
+- **Incorrect stride**: Verify vertex attribute pointer stride includes UV data
+- **UV attribute disabled**: Check `glEnableVertexAttribArray(2)` for UV attribute
+- **Wrong offset**: Confirm UV offset calculation (6 * sizeof(float))
 
-### "Cubes appear inside-out"
-**Winding Order Problems:**
-- **Wrong face orientation**: Ensure indices use counter-clockwise winding
-- **Culling incorrect faces**: Check `glCullFace()` and `glFrontFace()` settings
-- **Inside-out geometry**: Verify vertex positions and normal directions
+### "Textures appear pixelated or blurry"
+**Filtering Parameter Issues:**
+- **Wrong filter mode**: Use `GL_NEAREST` for pixelated, `GL_LINEAR` for smooth
+- **Missing mipmap**: Consider `GL_LINEAR_MIPMAP_LINEAR` for distant objects
+- **Texture size mismatch**: Use power-of-two dimensions for better compatibility
 
-### "Poor performance with many cubes"
-**Rendering Optimisation:**
-- **Backface culling disabled**: Enable `GL_CULL_FACE` for ~50% triangle reduction
-- **Too many draw calls**: Consider instanced rendering for many identical objects
-- **Excessive overdraw**: Use depth pre-pass or early-Z testing
-- **Fragment shader complexity**: Optimise fragment shader for better GPU performance
+### "Application crashes during texture operations"
+**Memory Management Problems:**
+- **Invalid texture ID**: Check texture generation succeeded
+- **Wrong texture format**: Ensure format matches data (RGB vs RGBA)
+- **Memory leak**: Always call `glDeleteTextures()` in cleanup
+- **Double deletion**: Don't delete the same texture twice
 
 ## What's Next?
 
-In the next branch (`07-texturing`), we'll:
-- Learn about **texture mapping** and UV coordinates for detailed surfaces
-- Implement **texture loading** from image files (PNG, JPG)
-- Understand **texture filtering** (nearest, linear, mipmapping)
-- Apply **multiple textures** to different cube faces
-- Explore **texture wrapping modes** and coordinate systems
-- Create **textured 3D objects** with realistic surface detail
+In the next branch (`08-abstraction`), we'll:
+- **Refactor code architecture** by breaking apart the monolithic source file
+- **Create Shader class** for shader compilation and management
+- **Implement Mesh class** for vertex data and rendering abstraction
+- **Build Renderer class** for high-level rendering commands
+- **Establish project structure** that scales to complex applications
+- **Prepare foundation** for advanced features like lighting and materials
 
 ## Resources for Deeper Learning
 
 ### Essential Reading:
-- [LearnOpenGL - Depth Testing](https://learnopengl.com/Advanced-OpenGL/Depth-testing)
-- [OpenGL Wiki - Depth Buffer](https://www.khronos.org/opengl/wiki/Depth_Buffer)
-- [Real-Time Rendering - Z-Buffer Algorithm](http://www.realtimerendering.com/)
+- [LearnOpenGL - Textures](https://learnopengl.com/Getting-started/Textures)
+- [OpenGL Wiki - Texture](https://www.khronos.org/opengl/wiki/Texture)
+- [Real-Time Rendering - Texture Mapping](http://www.realtimerendering.com/)
 
 ### Video Tutorials:
-- [The Cherno OpenGL - Depth Testing](https://www.youtube.com/watch?v=poHDHe1Kjno)
-- [3D Graphics Fundamentals - Hidden Surface Removal](https://www.youtube.com/results?search_query=z+buffer+algorithm)
+- [The Cherno OpenGL - Textures](https://www.youtube.com/watch?v=n4k7ANAFsIQ)
+- [OpenGL Texture Mapping Fundamentals](https://www.youtube.com/results?search_query=opengl+texture+mapping)
 
 ### Deep Dive Topics:
-- Z-buffer algorithm implementation and optimisation
-- Early-Z testing and hierarchical Z-buffers
-- Depth buffer precision and floating-point formats
-- Shadow mapping and depth-based techniques
-- Depth peeling for order-independent transparency
-- Reverse Z-buffer for improved precision
+- Texture compression formats (DXT, ETC, ASTC)
+- Advanced filtering techniques (anisotropic filtering)
+- Procedural texture generation algorithms
+- Texture streaming and memory management
+- UV unwrapping and texture painting workflows
+- Texture arrays and 3D textures
 
 ### Tools for Development:
-- **RenderDoc**: Visualise depth buffer contents and depth testing
-- **Graphics Debugger**: Step through depth test operations
-- **GPU Profiler**: Analyse depth testing performance impact
+- **RenderDoc**: Inspect texture data and binding states
+- **Texture Tools**: NVIDIA Texture Tools, AMD Compressonator
+- **Image Libraries**: stb_image, SOIL, FreeImage for loading files
 
 ## Debug Tips
 
-### Checking Depth Test State:
+### Checking Texture State:
 ```cpp
-GLboolean depthTestEnabled;
-glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-if (!depthTestEnabled) {
-    std::cout << "Warning: Depth testing is disabled!" << std::endl;
+// Verify texture was created successfully
+GLuint textureID;
+glGenTextures(1, &textureID);
+if (textureID == 0) {
+    std::cout << "Error: Failed to generate texture!" << std::endl;
 }
 ```
 
-### Debugging Index Buffer:
+### Debugging UV Coordinates:
 ```cpp
-// Print indices to verify winding order
-for (int i = 0; i < 36; i += 3) {
-    std::cout << "Triangle " << i/3 << ": "
-              << indices[i] << ", " << indices[i+1] << ", " << indices[i+2] << std::endl;
-}
+// Output UV coordinates as colours in fragment shader
+FragColor = vec4(texCoord.x, texCoord.y, 0.0, 1.0);  // Red=U, Green=V
 ```
 
-### Visualising Depth Values:
+### Texture Parameter Verification:
 ```cpp
-// In fragment shader - output depth as colour
-float depth = gl_FragCoord.z;
-FragColor = vec4(depth, depth, depth, 1.0);  // Grayscale depth
+// Check current texture parameters
+GLint wrapS, wrapT, minFilter, magFilter;
+glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
+glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
+glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter);
+glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter);
 ```
 
-### Testing Face Culling:
-```cpp
-// Temporarily disable culling to see all faces
-glDisable(GL_CULL_FACE);
-// Or switch to front face culling to see backfaces only
-glCullFace(GL_FRONT);
-```
-
-### Common Depth Testing Mistakes:
-- Forgetting to enable depth testing before rendering
-- Not clearing the depth buffer each frame
-- Using wrong depth comparison function
-- Incorrect near/far plane ratios causing precision loss
-- Wrong vertex winding order causing backface culling issues
+### Common Texture Mistakes:
+- Forgetting to bind texture before setting parameters
+- Not enabling texture coordinate vertex attribute
+- Using wrong texture unit in uniform (glUniform1i value)
+- Incorrect UV coordinate ranges or vertex data layout
+- Missing texture deletion causing memory leaks
 
 ---
 
-**Congratulations!** You've successfully implemented depth testing and 3D cube rendering! Understanding the depth buffer is crucial for any 3D application - from games to CAD software to scientific visualisation. The Z-buffer algorithm you've implemented is the foundation of modern 3D graphics hardware acceleration.
+**Congratulations!** You've successfully implemented texture mapping and UV coordinate systems! Texture mapping is fundamental to modern 3D graphics - every game, 3D application, and visualization tool relies on textures to create detailed, realistic surfaces. You now understand the complete pipeline from procedural texture generation to GPU sampling and rendering.

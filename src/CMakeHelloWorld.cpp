@@ -8,6 +8,86 @@
 #include "glm/gtc/type_ptr.hpp"     // GLM functions for converting matrices to arrays
 
 // =================================================================
+// TEXTURE LOADING HELPER FUNCTIONS
+// =================================================================
+
+// Function to create a simple procedural checkerboard texture
+unsigned int CreateCheckerboardTexture() {
+    // Create a simple 8x8 checkerboard pattern
+    const int width = 8;
+    const int height = 8;
+    unsigned char textureData[width * height * 3]; // RGB format
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int index = (y * width + x) * 3;
+            // Create checkerboard pattern
+            bool isWhite = ((x + y) % 2) == 0;
+            unsigned char color = isWhite ? 255 : 64; // White or dark grey
+
+            textureData[index + 0] = color; // Red
+            textureData[index + 1] = color; // Green
+            textureData[index + 2] = color; // Blue
+        }
+    }
+
+    // Generate and bind texture
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Upload texture data
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+    // Set texture parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    return textureID;
+}
+
+// Function to create a simple gradient texture
+unsigned int CreateGradientTexture() {
+    // Create a simple 16x16 gradient pattern
+    const int width = 16;
+    const int height = 16;
+    unsigned char textureData[width * height * 3]; // RGB format
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int index = (y * width + x) * 3;
+
+            // Create horizontal gradient from red to blue
+            unsigned char red = (unsigned char)((255 * x) / (width - 1));
+            unsigned char blue = (unsigned char)((255 * y) / (height - 1));
+            unsigned char green = 128; // Constant green
+
+            textureData[index + 0] = red;   // Red
+            textureData[index + 1] = green; // Green
+            textureData[index + 2] = blue;  // Blue
+        }
+    }
+
+    // Generate and bind texture
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Upload texture data
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+    // Set texture parameters for smooth filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    return textureID;
+}
+
+// =================================================================
 // SHADER COMPILATION HELPER FUNCTIONS
 // =================================================================
 
@@ -133,26 +213,26 @@ int main() {
     glFrontFace(GL_CCW);           // Counter-clockwise vertices = front face
 
     // =================================================================
-    // STEP 5: Define 3D Cube Vertex Data with Indexed Rendering
+    // STEP 5: Define 3D Cube Vertex Data with Texture Coordinates
     // =================================================================
     // A cube has 8 vertices and 6 faces (12 triangles total).
-    // Each vertex has position (X,Y,Z) and colour (R,G,B).
+    // Each vertex has position (X,Y,Z), colour (R,G,B), and texture coordinates (U,V).
 
-    // Define 8 unique vertices for a cube
+    // Define 8 unique vertices for a cube with UV coordinates
     float vertices[] = {
-        // Position        // Colour
-        // X      Y     Z     R     G     B
+        // Position        // Colour             // UV
+        // X      Y     Z     R     G     B      U     V
         // Front face vertices
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  // 0: Front-bottom-left - Red
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  // 1: Front-bottom-right - Green
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  // 2: Front-top-right - Blue
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  // 3: Front-top-left - Yellow
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // 0: Front-bottom-left - Red
+         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // 1: Front-bottom-right - Green
+         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  // 2: Front-top-right - Blue
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // 3: Front-top-left - Yellow
 
         // Back face vertices
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  // 4: Back-bottom-left - Magenta
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  // 5: Back-bottom-right - Cyan
-         0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  // 6: Back-top-right - Orange
-        -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f   // 7: Back-top-left - Grey
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,  // 4: Back-bottom-left - Magenta
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f, 0.0f,  // 5: Back-bottom-right - Cyan
+         0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 1.0f,  // 6: Back-top-right - Orange
+        -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,  1.0f, 1.0f   // 7: Back-top-left - Grey
     };
 
     // Define indices for cube faces (12 triangles = 36 indices)
@@ -195,15 +275,21 @@ int main() {
 
     // Configure vertex attribute 0: Position
     // Location 0 (matches shader), 3 components (X,Y,Z), GL_FLOAT type, not normalized,
-    // stride of 6*sizeof(float) (6 floats per vertex: XYZ + RGB), offset 0
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    // stride of 8*sizeof(float) (8 floats per vertex: XYZ + RGB + UV), offset 0
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);             // Enable position attribute
 
     // Configure vertex attribute 1: Colour
     // Location 1 (matches shader), 3 components (R,G,B), GL_FLOAT type, not normalized,
-    // stride of 6*sizeof(float), offset 3*sizeof(float) (skip the XYZ position data)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    // stride of 8*sizeof(float), offset 3*sizeof(float) (skip the XYZ position data)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);             // Enable colour attribute
+
+    // Configure vertex attribute 2: Texture Coordinates
+    // Location 2 (matches shader), 2 components (U,V), GL_FLOAT type, not normalized,
+    // stride of 8*sizeof(float), offset 6*sizeof(float) (skip XYZ + RGB data)
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);             // Enable texture coordinate attribute
 
     // =================================================================
     // STEP 8: Create Element Buffer Object (EBO)
@@ -221,32 +307,41 @@ int main() {
     // =================================================================
     // STEP 9: Define Shader Sources
     // =================================================================
-    // Vertex Shader: Processes each vertex with transformation matrix
+    // Vertex Shader: Processes each vertex with transformation matrix and texture coordinates
     std::string vertexShader =
         "#version 330 core\n"                          // GLSL version
         "layout (location = 0) in vec3 aPos;\n"        // Input: vertex position
         "layout (location = 1) in vec3 aColour;\n"     // Input: vertex colour
+        "layout (location = 2) in vec2 aTexCoord;\n"   // Input: texture coordinates
         "\n"
         "uniform mat4 u_MVP;\n"                        // Model-View-Projection matrix uniform
         "\n"
         "out vec3 vertexColour;\n"                     // Output: colour to fragment shader
+        "out vec2 texCoord;\n"                         // Output: texture coordinates to fragment shader
         "\n"
         "void main()\n"
         "{\n"
         "   // Transform vertex position using MVP matrix\n"
         "   gl_Position = u_MVP * vec4(aPos, 1.0);\n"  // Apply transformations
         "   vertexColour = aColour;\n"                 // Pass colour to fragment shader
+        "   texCoord = aTexCoord;\n"                   // Pass texture coordinates to fragment shader
         "}\n";
 
-    // Fragment Shader: Uses interpolated colours from vertices
+    // Fragment Shader: Samples texture and blends with vertex colours
     std::string fragmentShader =
         "#version 330 core\n"                          // GLSL version
         "in vec3 vertexColour;\n"                      // Input: interpolated colour from vertex shader
+        "in vec2 texCoord;\n"                          // Input: interpolated texture coordinates
+        "\n"
+        "uniform sampler2D u_Texture;\n"               // Texture sampler uniform
         "out vec4 FragColor;\n"                        // Output: final pixel colour
         "\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(vertexColour, 1.0f);\n"   // Use interpolated colour with full alpha
+        "   // Sample texture colour at interpolated UV coordinates\n"
+        "   vec4 texColor = texture(u_Texture, texCoord);\n"
+        "   // Blend texture colour with vertex colour (multiply blend)\n"
+        "   FragColor = texColor * vec4(vertexColour, 1.0f);\n"
         "}\n";
 
     // =================================================================
@@ -255,7 +350,20 @@ int main() {
     unsigned int shaderProgram = CreateShader(vertexShader, fragmentShader);
 
     // =================================================================
-    // STEP 11: Setup Transformation Matrices
+    // STEP 11: Create and Setup Textures
+    // =================================================================
+    // Create two different textures for demonstration
+    unsigned int checkerboardTexture = CreateCheckerboardTexture();
+    unsigned int gradientTexture = CreateGradientTexture();
+
+    // Get the uniform location for our texture sampler in the shader
+    int textureLocation = glGetUniformLocation(shaderProgram, "u_Texture");
+    if (textureLocation == -1) {
+        std::cout << "Warning: Could not find u_Texture uniform in shader!" << std::endl;
+    }
+
+    // =================================================================
+    // STEP 12: Setup Transformation Matrices
     // =================================================================
     // Get the uniform location for our MVP matrix in the shader
     int mvpLocation = glGetUniformLocation(shaderProgram, "u_MVP");
@@ -353,13 +461,21 @@ int main() {
                 }
             }
 
+            // Bind different textures for different cubes
+            if (i % 2 == 0) {
+                glBindTexture(GL_TEXTURE_2D, checkerboardTexture);  // Even cubes use checkerboard
+            } else {
+                glBindTexture(GL_TEXTURE_2D, gradientTexture);      // Odd cubes use gradient
+            }
+            glUniform1i(textureLocation, 0);  // Tell shader to use texture unit 0
+
             // Calculate MVP matrix for this cube
             glm::mat4 cubeMvp = projection * view * cubeModel;
 
-            // 2. Upload the MVP matrix to the shader for this cube
+            // Upload the MVP matrix to the shader for this cube
             glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
 
-            // 4. Draw this cube using indexed rendering!
+            // Draw this cube using indexed rendering!
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
 
@@ -377,6 +493,8 @@ int main() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);              // Clean up Element Buffer Object
+    glDeleteTextures(1, &checkerboardTexture);  // Clean up textures
+    glDeleteTextures(1, &gradientTexture);
     glDeleteProgram(shaderProgram);
 
     // =================================================================
@@ -386,6 +504,6 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    std::cout << "Multiple 3D cubes with depth testing rendered successfully! Window closed." << std::endl;
+    std::cout << "Multiple 3D textured cubes rendered successfully! Window closed." << std::endl;
     return 0;
 }
