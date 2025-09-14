@@ -1,116 +1,136 @@
-# Branch: 08-abstraction
+# Branch: 09-test-harness
 
 ## Learning Objective
-Master software architecture and object-oriented design by refactoring monolithic OpenGL code into reusable, maintainable classes. This branch demonstrates the transition from procedural programming to proper abstraction layers that form the foundation of scalable graphics applications.
+Implement an interactive test harness for experimenting with and demonstrating OpenGL concepts using the abstracted classes from previous branches. This branch introduces the concept of modular testing, interactive GUI-based experimentation, and systematic validation of graphics programming techniques.
 
 ## What You'll Build
-The same five rotating textured cubes as previous branches, but now implemented using proper abstraction layers with Shader, Mesh, and Renderer classes. The functionality remains identical while the code becomes modular, reusable, and easier to maintain.
+An interactive application with an ImGui-based test selection menu that allows you to experiment with different OpenGL concepts. Each test demonstrates specific features of our abstracted Shader, Mesh, and Renderer classes through real-time, interactive demonstrations.
 
-![Expected Result](docs/images/08-abstraction.png)
-*A 960x540 window displaying the same 5 rotating textured cubes, now powered by abstracted class architecture*
+![Expected Result](docs/images/09-test-harness.png)
+*A 960x540 window with an ImGui interface for selecting and interacting with different OpenGL concept demonstrations*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Class-Based Architecture**: Organizing code into logical, reusable components
-- **Separation of Concerns**: Each class handles one specific responsibility
-- **Encapsulation**: Hiding implementation details behind clean interfaces
-- **Resource Management**: RAII (Resource Acquisition Is Initialization) pattern
-- **Code Reusability**: Writing code that can be reused across different contexts
-- **Maintainability**: Structuring code for easy modification and extension
-- **Abstraction Layers**: Creating high-level interfaces over low-level OpenGL calls
-- **Object Lifetime Management**: Proper construction and destruction of resources
+- **Interactive Testing**: Building GUI-based tools for experimenting with graphics concepts
+- **Test Framework Architecture**: Modular system for registering and running different tests
+- **ImGui Integration**: Adding immediate mode GUI to OpenGL applications
+- **Concept Demonstration**: Using interactive tests to validate and showcase functionality
+- **Modular Test Design**: Creating focused tests that demonstrate specific features
+- **Real-Time Parameter Adjustment**: Using sliders and controls to modify rendering in real-time
+- **Educational Tool Development**: Building applications that teach through interaction
+- **Graphics Debugging**: Using visual tests to identify and solve rendering issues
 
-### Design Patterns Introduced:
-- **RAII Pattern**: Automatic resource management in constructors/destructors
-- **Factory Pattern**: Static methods for creating common objects (Mesh::CreateCube)
-- **Wrapper Pattern**: Encapsulating OpenGL state in C++ objects
-- **Interface Segregation**: Small, focused class interfaces
+### Test Framework Components:
+- **Test Base Class**: Abstract interface for all test implementations
+- **Test Menu System**: Registration and navigation between different tests
+- **ImGui Controls**: Interactive widgets for real-time parameter adjustment
+- **Shader Testing**: Interactive demonstration of shader compilation and uniform handling
+- **Mesh Testing**: Visual validation of geometry creation and factory methods
+- **Renderer Testing**: OpenGL state management and rendering pipeline validation
 
-### Architecture Components:
-- **Shader Class**: Manages shader compilation, linking, and uniform setting
-- **Mesh Class**: Handles vertex data, VAO/VBO/EBO management
-- **Renderer Class**: Provides high-level rendering commands and OpenGL error checking
-- **Resource Management**: Automatic cleanup via destructors
+### Technical Implementation:
+- **Test Registration**: Template-based system for adding new tests
+- **Resource Management**: Proper cleanup of test-specific OpenGL resources
+- **GUI Layout**: Organised ImGui interfaces for each test type
+- **Real-Time Updates**: Delta time-based animations and parameter changes
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp    # Main application using abstracted classes
-├── Shader.h/.cpp          # Shader compilation and uniform management
-├── Mesh.h/.cpp            # Vertex data and geometry abstraction
-├── Renderer.h/.cpp        # High-level rendering commands
-├── VertexArray.h/.cpp     # VAO wrapper (from main branch)
-├── VertexBuffer.h/.cpp    # VBO wrapper (from main branch)
-├── IndexBuffer.h/.cpp     # EBO wrapper (from main branch)
-└── VertexBufferLayout.h   # Vertex attribute layout helper
+├── CMakeHelloWorld.cpp       # Test harness main application with ImGui integration
+├── Shader.h/.cpp             # Shader compilation and uniform management
+├── Mesh.h/.cpp               # Vertex data and geometry abstraction
+├── Renderer.h/.cpp           # High-level rendering commands
+├── VertexArray.h/.cpp        # VAO wrapper (from main branch)
+├── VertexBuffer.h/.cpp       # VBO wrapper (from main branch)
+├── IndexBuffer.h/.cpp        # EBO wrapper (from main branch)
+├── VertexBufferLayout.h      # Vertex attribute layout helper
+├── tests/
+│   ├── Tests.h/.cpp          # Base test framework classes
+│   ├── TestShader.h/.cpp     # Interactive shader feature demonstration
+│   ├── TestMesh.h/.cpp       # Interactive mesh feature demonstration
+│   ├── TestRenderer.h/.cpp   # Interactive renderer feature demonstration
+│   ├── TestLightingShader.h/.cpp  # Advanced lighting demonstrations (from main)
+│   └── testEffects.h/.cpp    # Visual effects demonstrations (from main)
+└── vendor/
+    └── imgui/                # Dear ImGui library for interactive GUI
+        ├── imgui.h/.cpp
+        ├── imgui_impl_glfw.h/.cpp
+        ├── imgui_impl_opengl3.h/.cpp
+        └── ... (additional ImGui files)
 
 Dependencies:
-├── OpenGL 3.3+           # Graphics API
-└── GLM Library           # Mathematics
+├── OpenGL 3.3+              # Graphics API
+├── GLM Library              # Mathematics
+├── GLFW                     # Window management
+├── GLEW                     # OpenGL extension loading
+└── Dear ImGui               # Immediate mode GUI
 ```
 
-### Class Responsibility Overview
+### Test Framework Architecture
 
-The abstracted architecture follows a clear separation of concerns:
+The test harness follows a modular, extensible design:
 
-**Application Layer (CMakeHelloWorld):**
-- Coordinates overall rendering workflow
-- Manages scene objects and transformations
-- Handles user input and application lifecycle
+**Main Application (CMakeHelloWorld.cpp):**
+- Initialises GLFW, GLEW, and ImGui systems
+- Creates and manages the test menu system
+- Provides main rendering loop with delta time calculation
+- Handles test navigation and GUI integration
 
-**Renderer Class:**
-- Provides high-level rendering commands
-- Abstracts OpenGL draw calls and state management
-- Handles error checking and debugging
+**Test Base Classes (Tests.h/cpp):**
+- Abstract Tests class defining common interface (Update, Render, RenderGUI)
+- TestMenu class managing test registration and selection
+- Template-based registration system for type-safe test creation
 
-**Shader Class:**
-- Manages shader compilation and linking
-- Handles uniform variable setting
-- Provides clean interface for shader operations
+**Individual Test Classes:**
+- TestShader: Demonstrates shader compilation, uniform setting, and multiple shader programs
+- TestMesh: Shows mesh creation, factory methods, and geometry management
+- TestRenderer: Validates OpenGL state management and rendering pipeline
 
-**Mesh Class:**
-- Encapsulates vertex and index data
-- Manages VAO/VBO/EBO resources
-- Provides factory methods for common geometries
+**ImGui Integration:**
+- Real-time parameter adjustment through sliders, colour pickers, and checkboxes
+- Interactive test selection via button-based menu system
+- Organised GUI panels with feature descriptions and controls
 
-### OpenGL State Management
+### Test Registration System
 
-**Before (Monolithic):**
-- Manual glGenBuffers, glBindBuffer, glBufferData calls
-- Manual glGenVertexArrays, glBindVertexArray management
-- Manual glCreateShader, glCompileShader, glLinkProgram operations
-- Manual cleanup with glDelete* functions
+**Registration Process:**
+```cpp
+// In main application
+TestMenu->RegisterTest<TestShader>("Shader Abstraction", window);
+TestMenu->RegisterTest<TestMesh>("Mesh Abstraction", window);
+TestMenu->RegisterTest<TestRenderer>("Renderer Abstraction", window);
+```
 
-**After (Abstracted):**
-- Automatic resource management via RAII pattern
-- Clean interfaces: shader.Bind(), mesh.Bind()
-- Exception-safe resource cleanup in destructors
-- Centralised error checking and debugging support
+**Template-Based Creation:**
+- Type-safe test instantiation with constructor parameters
+- Automatic memory management and cleanup
+- Extensible design for adding new test types
 
-## What's Different from Previous Branch (07-texturing)
+## What's Different from Previous Branch (08-abstraction)
 
 ### New Additions:
-- **Shader Class**: Encapsulates shader compilation, linking, and uniform management
-- **Mesh Class**: Manages vertex data, VAO/VBO/EBO creation and binding
-- **Renderer Class**: Provides high-level rendering commands and error checking
-- **RAII Resource Management**: Automatic OpenGL resource cleanup
-- **Modular Architecture**: Separated concerns into focused classes
-- **Error Checking Macros**: GlCall macro for debugging OpenGL errors
-- **Factory Methods**: Static creation methods for common objects
+- **Interactive Test Framework**: Complete GUI-based system for concept demonstration
+- **ImGui Integration**: Real-time parameter adjustment and test navigation
+- **Modular Test System**: Extensible framework for adding new concept demonstrations
+- **TestShader**: Interactive demonstration of shader features and uniform handling
+- **TestMesh**: Visual validation of mesh creation and factory methods
+- **TestRenderer**: OpenGL state management and rendering pipeline testing
+- **Educational Interface**: Descriptive GUI elements explaining demonstrated concepts
+- **Delta Time Animation**: Smooth, time-based animations and parameter updates
 
 ### What Stayed the Same:
-- Identical visual output (5 rotating textured cubes)
-- Same vertex data layout and shader logic
-- Same transformation matrices and camera setup
-- Same texture creation and binding
-- Same keyboard input handling
+- All abstracted classes (Shader, Mesh, Renderer) with identical functionality
+- RAII resource management and error checking
+- OpenGL 3.3 Core Profile rendering pipeline
+- Same mathematical foundations and transformation systems
 
 ## Understanding the Code
 
-### Shader Class Architecture
+### Test Framework Implementation
 
 **Header (Shader.h):**
 ```cpp
