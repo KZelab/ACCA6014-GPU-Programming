@@ -11,7 +11,7 @@ A simple application that displays an orange triangle on a blue background. This
 
 ## Key Concepts
 
-### 📚 **Core Concepts Learned:**
+### Core Concepts Learned:
 - **Vertex Data**: The fundamental building blocks of 3D geometry
 - **Vertex Buffer Objects (VBO)**: Storing vertex data in GPU memory
 - **Vertex Array Objects (VAO)**: Configuring how OpenGL interprets vertex data
@@ -19,7 +19,7 @@ A simple application that displays an orange triangle on a blue background. This
 - **Graphics Pipeline**: Understanding the flow from vertices to pixels
 - **Normalized Device Coordinates (NDC)**: The coordinate system OpenGL uses
 
-### 🔧 **OpenGL Functions Introduced:**
+### OpenGL Functions Introduced:
 - `glGenBuffers()` / `glDeleteBuffers()` - Create/destroy buffer objects
 - `glBindBuffer()` - Make a buffer active
 - `glBufferData()` - Upload data to GPU memory
@@ -36,11 +36,11 @@ A simple application that displays an orange triangle on a blue background. This
 - `glUseProgram()` - Activate shader program for rendering
 - `glDrawArrays()` - Draw primitives from vertex data
 
-### 🎯 **Technical Terms:**
-- **Vertex**: A point in 3D space with properties (position, color, etc.)
+### Technical Terms:
+- **Vertex**: A point in 3D space with properties (position, colour, etc.)
 - **Primitive**: Basic geometric shape (point, line, triangle)
 - **Vertex Shader**: Processes individual vertices
-- **Fragment Shader**: Determines pixel colors
+- **Fragment Shader**: Determines pixel colours
 - **Rasterization**: Converting vertices to pixels
 - **Attribute**: Per-vertex data (like position or color)
 
@@ -73,11 +73,11 @@ Vertices → Vertex Shader → Primitive Assembly → Rasterization → Fragment
 2. **Vertex Shader**: Transforms each vertex position (identity transform here)
 3. **Primitive Assembly**: Groups vertices into triangles
 4. **Rasterization**: Determines which pixels are inside the triangle
-5. **Fragment Shader**: Colors each pixel orange (1.0, 0.5, 0.2, 1.0)
+5. **Fragment Shader**: Colours each pixel orange (1.0, 0.2, 1.0)
 
 ## What's Different from Previous Branch (01-window-setup)
 
-### ✅ **New Additions:**
+### New Additions:
 - Triangle vertex data (3 vertices with X,Y,Z coordinates)
 - Vertex Buffer Object (VBO) to store data on GPU
 - Vertex Array Object (VAO) to configure vertex attributes
@@ -87,7 +87,7 @@ Vertices → Vertex Shader → Primitive Assembly → Rasterization → Fragment
 - `glDrawArrays()` call to render the triangle
 - Proper GPU resource cleanup
 
-### 🔄 **What Stayed the Same:**
+### What Stayed the Same:
 - GLFW window creation and management
 - OpenGL context setup
 - Basic render loop structure
@@ -114,25 +114,17 @@ float vertices[] = {
 - Currently passes position through unchanged
 
 **Fragment Shader:**
-- Outputs the color for each pixel
+- Outputs the colour for each pixel
 - Sets all pixels to orange (1.0, 0.5, 0.2, 1.0)
 - RGBA format: Red=1.0, Green=0.5, Blue=0.2, Alpha=1.0
 
 ### Memory Layout
-```
-GPU Memory:
-┌─────────────────────────────────────┐
-│ VBO: [-0.5,-0.5,0] [0.5,-0.5,0] [0,0.5,0] │
-└─────────────────────────────────────┘
-        ↑
-    VAO points to this data
-    and says "every 3 floats = 1 vertex position"
-```
+The VBO stores the vertex data [-0.5,-0.5,0] [0.5,-0.5,0] [0,0.5,0] in GPU memory. The VAO points to this data and configures OpenGL to interpret every 3 floats as 1 vertex position.
 
 ## Try These Experiments
 
-### 🏃‍♂️ **Beginner Challenges:**
-1. **Change triangle color** - Modify the fragment shader RGB values:
+### Beginner Challenges:
+1. **Change triangle colour** - Modify the fragment shader RGB values:
    ```glsl
    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);  // Red triangle
    FragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);  // Green triangle
@@ -157,7 +149,7 @@ GPU Memory:
    };
    ```
 
-### 🏃‍♂️ **Intermediate Challenges:**
+### Intermediate Challenges:
 1. **Create a square using two triangles**:
    ```cpp
    float vertices[] = {
@@ -174,10 +166,10 @@ GPU Memory:
    // Change glDrawArrays(GL_TRIANGLES, 0, 6);
    ```
 
-2. **Add color as a vertex attribute**:
+2. **Add colour as a vertex attribute**:
    ```cpp
    float vertices[] = {
-       // Position        // Color
+       // Position        // Colour
        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom left, red
         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom right, green
         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top center, blue
@@ -192,33 +184,33 @@ GPU Memory:
    // Apply rotation matrix to vertex positions
    ```
 
-### 🚀 **Advanced Challenges:**
+### Advanced Challenges:
 1. **Add keyboard controls** - Use WASD to move the triangle
-2. **Multiple triangles** - Draw several triangles with different colors
+2. **Multiple triangles** - Draw several triangles with different colours
 3. **Wireframe mode** - Use `glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)`
 
 ## Common Issues & Solutions
 
-### ❌ "Black screen - no triangle visible"
+### "Black screen - no triangle visible"
 **Possible Causes & Solutions:**
 - **Vertices outside NDC range**: Check that coordinates are between -1.0 and 1.0
 - **Shader compilation failed**: Check console for shader error messages
 - **Wrong primitive type**: Ensure using `GL_TRIANGLES` in `glDrawArrays()`
 - **VAO not bound**: Make sure `glBindVertexArray(VAO)` is called before drawing
 
-### ❌ "Shader compilation failed"
+### "Shader compilation failed"
 **Common Issues:**
 - **GLSL version mismatch**: Ensure `#version 330 core` matches your OpenGL version
 - **Syntax errors**: Check semicolons, braces, and GLSL-specific syntax
 - **Variable naming**: OpenGL variable names are case-sensitive
 
-### ❌ "Triangle appears flipped or wrong orientation"
+### "Triangle appears flipped or wrong orientation"
 **Solutions:**
 - **Vertex winding order**: Try reversing the order of vertices
 - **Coordinate system**: Remember Y-axis points up in NDC
 - **Viewport**: Check if `glViewport()` is set correctly (handled by GLFW by default)
 
-### ❌ "Performance issues or crashes"
+### "Performance issues or crashes"
 **Memory Management:**
 - Always delete OpenGL objects: `glDeleteBuffers()`, `glDeleteVertexArrays()`, `glDeleteProgram()`
 - Don't bind buffers unnecessarily in render loop
@@ -227,7 +219,7 @@ GPU Memory:
 ## What's Next?
 
 In the next branch (`03-vertex-attributes`), we'll:
-- Add **color as a vertex attribute** (rainbow triangle!)
+- Add **colour as a vertex attribute** (rainbow triangle!)
 - Learn about **multiple vertex attributes** and **interleaved data**
 - Understand **vertex attribute layouts** and **offsets**
 - Create **more complex vertex structures**
@@ -235,23 +227,23 @@ In the next branch (`03-vertex-attributes`), we'll:
 
 ## Resources for Deeper Learning
 
-### 📖 **Essential Reading:**
+### Essential Reading:
 - [LearnOpenGL - Hello Triangle](https://learnopengl.com/Getting-started/Hello-Triangle)
 - [OpenGL Wiki - Vertex Specification](https://www.khronos.org/opengl/wiki/Vertex_Specification)
 - [OpenGL Wiki - Shader](https://www.khronos.org/opengl/wiki/Shader)
 
-### 🎥 **Video Tutorials:**
+### Video Tutorials:
 - [The Cherno OpenGL Series - Episode 4: Vertex Buffers](https://www.youtube.com/watch?v=x0H--CL2tUI)
 - [The Cherno OpenGL Series - Episode 5: Vertex Arrays](https://www.youtube.com/watch?v=Bcs4TufVmVk)
 
-### 📚 **Deep Dive Topics:**
+### Deep Dive Topics:
 - OpenGL State Machine
 - Graphics Pipeline Stages
 - GPU Memory Management
 - GLSL Language Specification
 - Coordinate Systems in Computer Graphics
 
-### 🛠️ **Tools for Development:**
+### Tools for Development:
 - **RenderDoc**: Graphics debugging and profiling
 - **OpenGL ES Emulator**: Testing on different GPU capabilities
 - **Shader Playground**: Online GLSL shader testing
@@ -282,6 +274,6 @@ if (!success) {
 
 ---
 
-**🎉 Congratulations!** You've successfully rendered your first triangle using modern OpenGL! You now understand the fundamental building blocks of all 3D graphics: vertices, buffers, shaders, and the graphics pipeline. Every complex 3D model is ultimately made up of triangles just like this one.
+**Congratulations!** You've successfully rendered your first triangle using modern OpenGL! You now understand the fundamental building blocks of all 3D graphics: vertices, buffers, shaders, and the graphics pipeline. Every complex 3D model is ultimately made up of triangles just like this one.
 
 This triangle represents your entry into the world of real-time graphics programming. From here, the possibilities are endless!
