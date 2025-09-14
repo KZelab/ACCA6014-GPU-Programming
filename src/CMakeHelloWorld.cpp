@@ -115,16 +115,17 @@ int main() {
     glfwSwapInterval(1);
 
     // =================================================================
-    // STEP 5: Define Triangle Vertex Data
+    // STEP 5: Define Triangle Vertex Data with Colour Attributes
     // =================================================================
-    // A triangle requires 3 vertices. Each vertex has an X, Y, and Z coordinate.
-    // In OpenGL, coordinates range from -1.0 to 1.0 for the visible area.
-    // This is called "Normalized Device Coordinates" (NDC).
+    // Now each vertex has both position (X,Y,Z) and colour (R,G,B) data.
+    // This is called "interleaved vertex data" - multiple attributes per vertex.
+    // The data is arranged as: Position, Colour, Position, Colour, etc.
     float vertices[] = {
-        // X      Y      Z
-        -0.5f, -0.5f,  0.0f,  // Bottom left vertex
-         0.5f, -0.5f,  0.0f,  // Bottom right vertex
-         0.0f,  0.5f,  0.0f   // Top center vertex
+        // Position        // Colour
+        // X      Y     Z     R     G     B
+        -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom left vertex - Red
+         0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom right vertex - Green
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top center vertex - Blue
     };
 
     // =================================================================
@@ -148,31 +149,44 @@ int main() {
     glGenVertexArrays(1, &VAO);               // Generate a VAO ID
     glBindVertexArray(VAO);                   // Bind as the active VAO
 
-    // Configure the vertex attribute (position)
-    // Location 0, 3 components (X,Y,Z), GL_FLOAT type, not normalized,
-    // stride of 3*sizeof(float), offset 0
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);             // Enable the vertex attribute
+    // Configure vertex attribute 0: Position
+    // Location 0 (matches shader), 3 components (X,Y,Z), GL_FLOAT type, not normalized,
+    // stride of 6*sizeof(float) (6 floats per vertex: XYZ + RGB), offset 0
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);             // Enable position attribute
+
+    // Configure vertex attribute 1: Colour
+    // Location 1 (matches shader), 3 components (R,G,B), GL_FLOAT type, not normalized,
+    // stride of 6*sizeof(float), offset 3*sizeof(float) (skip the XYZ position data)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);             // Enable colour attribute
 
     // =================================================================
     // STEP 8: Define Shader Sources
     // =================================================================
-    // Vertex Shader: Processes each vertex, determining final position
+    // Vertex Shader: Processes each vertex, handling position and colour
     std::string vertexShader =
         "#version 330 core\n"                          // GLSL version
         "layout (location = 0) in vec3 aPos;\n"        // Input: vertex position
+        "layout (location = 1) in vec3 aColour;\n"     // Input: vertex colour
+        "\n"
+        "out vec3 vertexColour;\n"                     // Output: colour to fragment shader
+        "\n"
         "void main()\n"
         "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"  // Output position
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"  // Set vertex position
+        "   vertexColour = aColour;\n"                 // Pass colour to fragment shader
         "}\n";
 
-    // Fragment Shader: Determines the color of each pixel
+    // Fragment Shader: Uses interpolated colours from vertices
     std::string fragmentShader =
         "#version 330 core\n"                          // GLSL version
-        "out vec4 FragColor;\n"                        // Output: pixel color
+        "in vec3 vertexColour;\n"                      // Input: interpolated colour from vertex shader
+        "out vec4 FragColor;\n"                        // Output: final pixel colour
+        "\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"  // Orange color (R,G,B,A)
+        "   FragColor = vec4(vertexColour, 1.0f);\n"   // Use interpolated colour with full alpha
         "}\n";
 
     // =================================================================

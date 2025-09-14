@@ -1,279 +1,277 @@
-# Branch: 02-first-triangle
+# Branch: 03-vertex-attributes
 
 ## Learning Objective
-Learn to render your first geometric primitive - a triangle! This introduces the core concepts of vertex data, shaders, buffers, and the graphics pipeline that form the foundation of all 3D graphics programming.
+Learn to use multiple vertex attributes by creating a rainbow triangle! This introduces interleaved vertex data, vertex attribute configuration, and shader communication between vertex and fragment stages.
 
 ## What You'll Build
-A simple application that displays an orange triangle on a blue background. This might seem basic, but you're now officially rendering geometry using the modern OpenGL pipeline!
+A beautiful rainbow triangle where each vertex has its own colour (red, green, blue) and OpenGL automatically interpolates the colours across the triangle surface, creating smooth colour gradients.
 
-![Expected Result](docs/images/02-triangle-orange.png)
-*A 960x540 window displaying an orange triangle on blue background*
+![Expected Result](docs/images/03-rainbow-triangle.png)
+*A 960x540 window displaying a rainbow triangle with interpolated colours*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Vertex Data**: The fundamental building blocks of 3D geometry
-- **Vertex Buffer Objects (VBO)**: Storing vertex data in GPU memory
-- **Vertex Array Objects (VAO)**: Configuring how OpenGL interprets vertex data
-- **Shaders**: Small programs that run on the GPU (vertex and fragment shaders)
-- **Graphics Pipeline**: Understanding the flow from vertices to pixels
-- **Normalized Device Coordinates (NDC)**: The coordinate system OpenGL uses
+- **Multiple Vertex Attributes**: Each vertex can have multiple properties (position, colour, normals, etc.)
+- **Interleaved Vertex Data**: Storing different attributes together in a single buffer
+- **Vertex Attribute Pointers**: Telling OpenGL how to interpret different attributes
+- **Shader Input/Output**: Communication between vertex and fragment shaders
+- **Attribute Interpolation**: How OpenGL smoothly blends values across triangle surfaces
+- **Vertex Attribute Locations**: Binding attributes to specific shader inputs
 
 ### OpenGL Functions Introduced:
-- `glGenBuffers()` / `glDeleteBuffers()` - Create/destroy buffer objects
-- `glBindBuffer()` - Make a buffer active
-- `glBufferData()` - Upload data to GPU memory
-- `glGenVertexArrays()` / `glDeleteVertexArrays()` - Create/destroy VAOs
-- `glBindVertexArray()` - Make a VAO active
-- `glVertexAttribPointer()` - Define vertex attribute layout
-- `glEnableVertexAttribArray()` - Enable vertex attributes
-- `glCreateShader()` / `glDeleteShader()` - Create/destroy shader objects
-- `glShaderSource()` - Attach source code to shader
-- `glCompileShader()` - Compile shader code
-- `glCreateProgram()` / `glDeleteProgram()` - Create/destroy shader programs
-- `glAttachShader()` - Attach compiled shaders to program
-- `glLinkProgram()` - Link shaders into complete program
-- `glUseProgram()` - Activate shader program for rendering
-- `glDrawArrays()` - Draw primitives from vertex data
+- `glVertexAttribPointer()` with stride and offset parameters
+- `glEnableVertexAttribArray()` for multiple attributes
+- Multiple calls to configure different vertex attributes
+
+### GLSL Features Introduced:
+- **Input Attributes**: `layout (location = 1) in vec3 aColour`
+- **Vertex Shader Outputs**: `out vec3 vertexColour`
+- **Fragment Shader Inputs**: `in vec3 vertexColour`
+- **Attribute Location Binding**: Matching locations between VAO and shader
 
 ### Technical Terms:
-- **Vertex**: A point in 3D space with properties (position, colour, etc.)
-- **Primitive**: Basic geometric shape (point, line, triangle)
-- **Vertex Shader**: Processes individual vertices
-- **Fragment Shader**: Determines pixel colours
-- **Rasterization**: Converting vertices to pixels
-- **Attribute**: Per-vertex data (like position or color)
+- **Interleaved Data**: Multiple attributes packed together per vertex
+- **Stride**: Total bytes between consecutive vertices
+- **Offset**: Bytes from vertex start to specific attribute
+- **Varying Variables**: Data passed from vertex to fragment shader (interpolated)
+- **Attribute Location**: Index number identifying vertex attributes
+- **Rasterization Interpolation**: How values are smoothly blended across surfaces
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp    # Main application with triangle rendering
+├── CMakeHelloWorld.cpp    # Main application with rainbow triangle
 └── CMakeHelloWorld.h      # Header file (if needed)
 ```
 
-### Program Flow
-1. **Initialize GLFW & OpenGL** - Set up windowing and graphics context
-2. **Define Vertex Data** - Create triangle vertex positions
-3. **Create VBO** - Upload vertex data to GPU memory
-4. **Create VAO** - Configure vertex attribute interpretation
-5. **Create Shaders** - Write and compile vertex/fragment shaders
-6. **Link Shader Program** - Combine shaders into executable program
-7. **Render Loop** - Draw triangle every frame
-8. **Cleanup** - Properly release GPU resources
-
-### Understanding the Graphics Pipeline
-
+### Vertex Data Layout
 ```
-Vertices → Vertex Shader → Primitive Assembly → Rasterization → Fragment Shader → Pixels
+Vertex 0: [X, Y, Z, R, G, B] = [-0.5, -0.5, 0.0, 1.0, 0.0, 0.0]  // Red
+Vertex 1: [X, Y, Z, R, G, B] = [ 0.5, -0.5, 0.0, 0.0, 1.0, 0.0]  // Green
+Vertex 2: [X, Y, Z, R, G, B] = [ 0.0,  0.5, 0.0, 0.0, 0.0, 1.0]  // Blue
+
+Memory Layout:
+[X0,Y0,Z0,R0,G0,B0, X1,Y1,Z1,R1,G1,B1, X2,Y2,Z2,R2,G2,B2]
 ```
 
-1. **Vertices**: Your 3 triangle points (-0.5,-0.5), (0.5,-0.5), (0.0,0.5)
-2. **Vertex Shader**: Transforms each vertex position (identity transform here)
-3. **Primitive Assembly**: Groups vertices into triangles
-4. **Rasterization**: Determines which pixels are inside the triangle
-5. **Fragment Shader**: Colours each pixel orange (1.0, 0.2, 1.0)
+### Vertex Attribute Configuration
+```cpp
+// Attribute 0: Position (XYZ) - 3 floats, stride 6*sizeof(float), offset 0
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 
-## What's Different from Previous Branch (01-window-setup)
+// Attribute 1: Colour (RGB) - 3 floats, stride 6*sizeof(float), offset 3*sizeof(float)
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+```
+
+## What's Different from Previous Branch (02-first-triangle)
 
 ### New Additions:
-- Triangle vertex data (3 vertices with X,Y,Z coordinates)
-- Vertex Buffer Object (VBO) to store data on GPU
-- Vertex Array Object (VAO) to configure vertex attributes
-- Vertex shader (transforms vertex positions)
-- Fragment shader (sets pixel color)
-- Shader compilation and linking functions
-- `glDrawArrays()` call to render the triangle
-- Proper GPU resource cleanup
+- **Interleaved vertex data** with position and colour per vertex
+- **Multiple vertex attributes** configured in VAO
+- **Enhanced vertex shader** with colour input and output
+- **Updated fragment shader** using interpolated colours
+- **Stride and offset calculations** for attribute pointers
+- **Shader communication** between vertex and fragment stages
 
 ### What Stayed the Same:
-- GLFW window creation and management
-- OpenGL context setup
-- Basic render loop structure
-- Blue background color
+- Basic window setup and OpenGL context
+- VBO creation and data upload
+- VAO creation (but with enhanced configuration)
+- Render loop and drawing commands
+- Resource cleanup
 
 ## Understanding the Code
 
-### Vertex Data Explanation
+### Interleaved Vertex Data Explained
+Instead of separate arrays for position and colour, we store them together:
 ```cpp
 float vertices[] = {
-    -0.5f, -0.5f,  0.0f,  // Bottom left
-     0.5f, -0.5f,  0.0f,  // Bottom right
-     0.0f,  0.5f,  0.0f   // Top center
+    // Position        // Colour
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // Vertex 0: Red
+     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // Vertex 1: Green
+     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f   // Vertex 2: Blue
 };
 ```
-- Coordinates are in Normalized Device Coordinates (NDC)
-- NDC range from -1.0 to +1.0 for visible area
-- Z=0.0 means the triangle is in the center depth-wise
 
-### Shader Sources
-**Vertex Shader:**
-- Receives vertex position as input (`aPos`)
-- Outputs final vertex position (`gl_Position`)
-- Currently passes position through unchanged
+This is efficient because related data stays together in memory.
 
-**Fragment Shader:**
-- Outputs the colour for each pixel
-- Sets all pixels to orange (1.0, 0.5, 0.2, 1.0)
-- RGBA format: Red=1.0, Green=0.5, Blue=0.2, Alpha=1.0
+### Vertex Attribute Pointer Parameters
+```cpp
+glVertexAttribPointer(location, size, type, normalized, stride, offset)
+```
+- **location**: Which attribute (0 for position, 1 for colour)
+- **size**: Components per attribute (3 for XYZ or RGB)
+- **type**: Data type (GL_FLOAT)
+- **normalized**: Whether to normalize data (GL_FALSE)
+- **stride**: Bytes between consecutive vertices (6 * sizeof(float))
+- **offset**: Bytes from vertex start to this attribute
 
-### Memory Layout
-The VBO stores the vertex data [-0.5,-0.5,0] [0.5,-0.5,0] [0,0.5,0] in GPU memory. The VAO points to this data and configures OpenGL to interpret every 3 floats as 1 vertex position.
+### Shader Communication Pipeline
+1. **Vertex Shader Input**: Receives position and colour per vertex
+2. **Vertex Shader Output**: Passes colour to next stage
+3. **Rasterization**: OpenGL interpolates colours across triangle
+4. **Fragment Shader Input**: Receives interpolated colour per pixel
+5. **Fragment Shader Output**: Uses interpolated colour for final pixel
+
+### Colour Interpolation
+OpenGL automatically interpolates vertex colours across the triangle surface:
+- **Red vertex** at bottom-left
+- **Green vertex** at bottom-right
+- **Blue vertex** at top-centre
+- **Interpolated colours** everywhere else (yellow, cyan, magenta, etc.)
 
 ## Try These Experiments
 
 ### Beginner Challenges:
-1. **Change triangle colour** - Modify the fragment shader RGB values:
+1. **Change vertex colours** - Try different RGB combinations:
+   ```cpp
+   // Make it a warm triangle (red, orange, yellow)
+   -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Red
+    0.5f, -0.5f, 0.0f,  1.0f, 0.5f, 0.0f,  // Orange
+    0.0f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f   // Yellow
+   ```
+
+2. **Create a monochrome triangle** - Use shades of the same colour:
+   ```cpp
+   // Different shades of blue
+   -0.5f, -0.5f, 0.0f,  0.2f, 0.2f, 0.8f,  // Dark blue
+    0.5f, -0.5f, 0.0f,  0.5f, 0.5f, 1.0f,  // Medium blue
+    0.0f,  0.5f, 0.0f,  0.8f, 0.8f, 1.0f   // Light blue
+   ```
+
+3. **Experiment with alpha values** - Modify fragment shader:
    ```glsl
-   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);  // Red triangle
-   FragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);  // Green triangle
-   ```
-
-2. **Change triangle size** - Modify the vertex coordinates:
-   ```cpp
-   float vertices[] = {
-       -0.8f, -0.8f,  0.0f,  // Bigger triangle
-        0.8f, -0.8f,  0.0f,
-        0.0f,  0.8f,  0.0f
-   };
-   ```
-
-3. **Move the triangle** - Add offset to all X coordinates:
-   ```cpp
-   float offset = 0.3f;
-   float vertices[] = {
-       -0.5f + offset, -0.5f,  0.0f,
-        0.5f + offset, -0.5f,  0.0f,
-        0.0f + offset,  0.5f,  0.0f
-   };
+   FragColor = vec4(vertexColour, 0.5f);  // Semi-transparent
    ```
 
 ### Intermediate Challenges:
-1. **Create a square using two triangles**:
+1. **Create a rainbow square** using two triangles:
    ```cpp
    float vertices[] = {
        // First triangle
-       -0.5f, -0.5f, 0.0f,  // Bottom left
-        0.5f, -0.5f, 0.0f,  // Bottom right
-       -0.5f,  0.5f, 0.0f,  // Top left
+       -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom-left: Red
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom-right: Green
+       -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  // Top-left: Blue
 
        // Second triangle
-        0.5f, -0.5f, 0.0f,  // Bottom right
-        0.5f,  0.5f, 0.0f,  // Top right
-       -0.5f,  0.5f, 0.0f   // Top left
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom-right: Green
+        0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  // Top-right: Yellow
+       -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top-left: Blue
    };
-   // Change glDrawArrays(GL_TRIANGLES, 0, 6);
+   // Change to: glDrawArrays(GL_TRIANGLES, 0, 6);
    ```
 
-2. **Add colour as a vertex attribute**:
+2. **Add a brightness attribute**:
    ```cpp
    float vertices[] = {
-       // Position        // Colour
-       -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // Bottom left, red
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // Bottom right, green
-        0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // Top center, blue
+       // Position        // Colour        // Brightness
+       -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // Bright red
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f,  // Dim green
+        0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.8f   // Medium blue
    };
    ```
-   *Note: This requires updating the vertex shader and VAO configuration*
+   *Note: Requires updating shaders and VAO configuration*
 
-3. **Animate the triangle** - Add rotation in the vertex shader:
-   ```cpp
-   // Add uniform for time in fragment shader
-   // Pass glfwGetTime() to shader
-   // Apply rotation matrix to vertex positions
+3. **Create pulsating colours** - Add time uniform:
+   ```glsl
+   // In fragment shader
+   uniform float uTime;
+   void main() {
+       vec3 pulsatingColour = vertexColour * (0.5 + 0.5 * sin(uTime));
+       FragColor = vec4(pulsatingColour, 1.0);
+   }
    ```
 
 ### Advanced Challenges:
-1. **Add keyboard controls** - Use WASD to move the triangle
-2. **Multiple triangles** - Draw several triangles with different colours
-3. **Wireframe mode** - Use `glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)`
+1. **HSV colour space** - Convert RGB to HSV in fragment shader
+2. **Vertex colour animation** - Modify colours in vertex shader based on time
+3. **Multiple triangles** with different colour schemes
+4. **Index buffer usage** - Eliminate duplicate vertices in square example
 
 ## Common Issues & Solutions
 
-### "Black screen - no triangle visible"
+### "Triangle appears black or wrong colours"
 **Possible Causes & Solutions:**
-- **Vertices outside NDC range**: Check that coordinates are between -1.0 and 1.0
-- **Shader compilation failed**: Check console for shader error messages
-- **Wrong primitive type**: Ensure using `GL_TRIANGLES` in `glDrawArrays()`
-- **VAO not bound**: Make sure `glBindVertexArray(VAO)` is called before drawing
+- **Wrong attribute locations**: Ensure VAO locations match shader locations
+- **Incorrect stride/offset**: Check calculations for interleaved data
+- **Missing glEnableVertexAttribArray()**: Enable all used attributes
+- **Shader compilation errors**: Check console for GLSL errors
 
-### "Shader compilation failed"
-**Common Issues:**
-- **GLSL version mismatch**: Ensure `#version 330 core` matches your OpenGL version
-- **Syntax errors**: Check semicolons, braces, and GLSL-specific syntax
-- **Variable naming**: OpenGL variable names are case-sensitive
-
-### "Triangle appears flipped or wrong orientation"
+### "Colours not interpolating smoothly"
 **Solutions:**
-- **Vertex winding order**: Try reversing the order of vertices
-- **Coordinate system**: Remember Y-axis points up in NDC
-- **Viewport**: Check if `glViewport()` is set correctly (handled by GLFW by default)
+- **Vertex order**: Ensure consistent winding order
+- **Data types**: Use float (not int) for colour values
+- **Normalisation**: Colour values should be 0.0 to 1.0 range
 
-### "Performance issues or crashes"
-**Memory Management:**
-- Always delete OpenGL objects: `glDeleteBuffers()`, `glDeleteVertexArrays()`, `glDeleteProgram()`
-- Don't bind buffers unnecessarily in render loop
-- Check for OpenGL errors with `glGetError()`
+### "Attribute configuration errors"
+**Memory Layout Issues:**
+- **Stride calculation**: Total bytes per vertex (6 * sizeof(float))
+- **Offset calculation**: Bytes to skip before attribute starts
+- **Data alignment**: Ensure proper float alignment in memory
+
+### "Shader linking failures"
+**Common Problems:**
+- **Mismatched variable names**: Vertex shader `out` must match fragment `in`
+- **Type mismatches**: vec3 output must connect to vec3 input
+- **Missing precision qualifiers**: May be needed on some platforms
 
 ## What's Next?
 
-In the next branch (`03-vertex-attributes`), we'll:
-- Add **colour as a vertex attribute** (rainbow triangle!)
-- Learn about **multiple vertex attributes** and **interleaved data**
-- Understand **vertex attribute layouts** and **offsets**
-- Create **more complex vertex structures**
-- Explore **attribute locations** and **binding**
+In the next branch (`04-indexed-rendering`), we'll:
+- Learn about **Index Buffer Objects (EBO)** for efficient geometry
+- **Eliminate duplicate vertices** when creating squares and complex shapes
+- Understand **indexed vs array drawing** methods
+- Create **more complex geometry** efficiently
+- Explore **triangle strip and fan primitives**
 
 ## Resources for Deeper Learning
 
 ### Essential Reading:
-- [LearnOpenGL - Hello Triangle](https://learnopengl.com/Getting-started/Hello-Triangle)
-- [OpenGL Wiki - Vertex Specification](https://www.khronos.org/opengl/wiki/Vertex_Specification)
-- [OpenGL Wiki - Shader](https://www.khronos.org/opengl/wiki/Shader)
+- [LearnOpenGL - Shaders](https://learnopengl.com/Getting-started/Shaders)
+- [OpenGL Wiki - Vertex Attribute](https://www.khronos.org/opengl/wiki/Vertex_Attribute)
+- [GLSL Specification - Input/Output](https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.html)
 
 ### Video Tutorials:
-- [The Cherno OpenGL Series - Episode 4: Vertex Buffers](https://www.youtube.com/watch?v=x0H--CL2tUI)
-- [The Cherno OpenGL Series - Episode 5: Vertex Arrays](https://www.youtube.com/watch?v=Bcs4TufVmVk)
+- [The Cherno OpenGL - Vertex Attributes](https://www.youtube.com/watch?v=x0H--CL2tUI)
+- [OpenGL Tutorial - Multiple Vertex Attributes](https://www.youtube.com/watch?v=bI4FHmLHK8Q)
 
 ### Deep Dive Topics:
-- OpenGL State Machine
-- Graphics Pipeline Stages
-- GPU Memory Management
-- GLSL Language Specification
-- Coordinate Systems in Computer Graphics
+- Vertex Attribute Array Object (VAO) state management
+- Memory layout optimization for GPU performance
+- GLSL varying interpolation qualifiers (smooth, flat, noperspective)
+- Vertex pulling vs vertex pushing architectures
 
 ### Tools for Development:
-- **RenderDoc**: Graphics debugging and profiling
-- **OpenGL ES Emulator**: Testing on different GPU capabilities
-- **Shader Playground**: Online GLSL shader testing
+- **RenderDoc**: Inspect vertex attribute data
+- **OpenGL Debugger**: Verify VAO configuration
+- **GPU Memory Profilers**: Analyse vertex data layout efficiency
 
 ## Debug Tips
 
-### Checking for OpenGL Errors:
+### Checking Vertex Attribute Configuration:
 ```cpp
-GLenum error = glGetError();
-if (error != GL_NO_ERROR) {
-    std::cout << "OpenGL Error: " << error << std::endl;
+GLint maxAttribs;
+glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
+std::cout << "Maximum vertex attributes: " << maxAttribs << std::endl;
+```
+
+### Verifying Shader Variables:
+```cpp
+GLint location = glGetAttribLocation(shaderProgram, "aColour");
+if (location == -1) {
+    std::cout << "Attribute 'aColour' not found in shader!" << std::endl;
 }
 ```
 
-### Verifying Shader Compilation:
-```cpp
-GLint success;
-glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-if (!success) {
-    // Handle compilation error
-}
-```
-
-### Common OpenGL Error Codes:
-- `GL_INVALID_ENUM` (1280): Wrong enumeration value
-- `GL_INVALID_VALUE` (1281): Numeric argument out of range
-- `GL_INVALID_OPERATION` (1282): Operation not allowed in current state
+### Common Attribute Layout Mistakes:
+- Forgetting to multiply by sizeof(float) in stride/offset
+- Using wrong attribute location numbers
+- Mixing up the order of position and colour data
+- Not enabling vertex attribute arrays
 
 ---
 
-**Congratulations!** You've successfully rendered your first triangle using modern OpenGL! You now understand the fundamental building blocks of all 3D graphics: vertices, buffers, shaders, and the graphics pipeline. Every complex 3D model is ultimately made up of triangles just like this one.
-
-This triangle represents your entry into the world of real-time graphics programming. From here, the possibilities are endless!
+**Congratulations!** You've successfully created your first multi-attribute vertex setup! Understanding vertex attributes is fundamental to all advanced graphics programming - textures, normals, tangents, and more all work using these same principles. The rainbow triangle demonstrates the power of GPU interpolation that makes modern graphics so smooth and beautiful.
