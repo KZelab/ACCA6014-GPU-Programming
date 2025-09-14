@@ -10,9 +10,7 @@
 #include "Renderer.h"               // Custom renderer wrapper
 #include "Shader.h"                 // Custom shader wrapper
 #include "tests/Tests.h"
-#include "tests/TestShader.h"
-#include "tests/TestMesh.h"
-#include "tests/TestRenderer.h"
+#include "tests/testClearColour.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 #include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
@@ -80,10 +78,8 @@ int main() {
 
         currentTest = TestMenu;
 
-        // Register our abstraction demonstration tests
-        TestMenu->RegisterTest<test::TestShader>("Shader Abstraction", window);
-        TestMenu->RegisterTest<test::TestMesh>("Mesh Abstraction", window);
-        TestMenu->RegisterTest<test::TestRenderer>("Renderer Abstraction", window);
+        // Register tests in the specified order for branch 10
+        TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
 
 
         float lastTimeFrame = 0.0f;
