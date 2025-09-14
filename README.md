@@ -52,35 +52,43 @@ Dependencies:
 └── GLM Library           # Mathematics
 ```
 
-### Class Responsibility Diagram
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Application   │───▶│     Renderer     │───▶│   OpenGL API    │
-│ CMakeHelloWorld │    │ High-level draws │    │ Low-level calls │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐
-│     Shader      │    │      Mesh        │
-│ Compile & Link  │    │ Vertex/Index     │
-│ Uniform Setting │    │ Data Management  │
-└─────────────────┘    └──────────────────┘
-```
+### Class Responsibility Overview
+
+The abstracted architecture follows a clear separation of concerns:
+
+**Application Layer (CMakeHelloWorld):**
+- Coordinates overall rendering workflow
+- Manages scene objects and transformations
+- Handles user input and application lifecycle
+
+**Renderer Class:**
+- Provides high-level rendering commands
+- Abstracts OpenGL draw calls and state management
+- Handles error checking and debugging
+
+**Shader Class:**
+- Manages shader compilation and linking
+- Handles uniform variable setting
+- Provides clean interface for shader operations
+
+**Mesh Class:**
+- Encapsulates vertex and index data
+- Manages VAO/VBO/EBO resources
+- Provides factory methods for common geometries
 
 ### OpenGL State Management
-```
-Before (Monolithic):
-- Manual glGenBuffers, glBindBuffer, glBufferData
-- Manual glGenVertexArrays, glBindVertexArray
-- Manual glCreateShader, glCompileShader, glLinkProgram
+
+**Before (Monolithic):**
+- Manual glGenBuffers, glBindBuffer, glBufferData calls
+- Manual glGenVertexArrays, glBindVertexArray management
+- Manual glCreateShader, glCompileShader, glLinkProgram operations
 - Manual cleanup with glDelete* functions
 
-After (Abstracted):
-- Automatic resource management via RAII
+**After (Abstracted):**
+- Automatic resource management via RAII pattern
 - Clean interfaces: shader.Bind(), mesh.Bind()
-- Exception-safe resource cleanup
-- Centralized error checking and debugging
-```
+- Exception-safe resource cleanup in destructors
+- Centralised error checking and debugging support
 
 ## What's Different from Previous Branch (07-texturing)
 
@@ -403,4 +411,3 @@ Shader::~Shader() {
 
 ---
 
-**Congratulations!** You've successfully refactored monolithic OpenGL code into a clean, maintainable class-based architecture! This abstraction foundation is essential for building complex graphics applications. Every major game engine and graphics framework uses similar abstraction patterns to manage OpenGL complexity and create reusable, testable code.
