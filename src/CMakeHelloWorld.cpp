@@ -12,6 +12,9 @@
 #include "Mesh/Cube.h"
 #include "tests/testEffects.h"
 #include "tests/TestLightingShader.h"
+#include "tests/testClearColour.h"
+#include "tests/testTexture2D.h"
+#include "tests/testRayCasting.h"
 #include "tests/Tests.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
@@ -80,7 +83,9 @@ int main() {
 
         currentTest = TestMenu;
 
-        //TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
+        TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
+        TestMenu->RegisterTest<test::testTexture2D>("Test Texture2D");
+        TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting");
         TestMenu->RegisterTest<test::TestLightingShader>("Lighting shader", window);
         TestMenu->RegisterTest<test::testEffects>("Effects shader", window);
 
