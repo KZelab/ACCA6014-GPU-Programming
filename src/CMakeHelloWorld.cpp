@@ -1,4 +1,4 @@
-﻿#include <GL/glew.h>                // GLEW library for managing OpenGL extensions
+#include <GL/glew.h>                // GLEW library for managing OpenGL extensions
 #include <GLFW/glfw3.h>             // GLFW for window management and input handling
 #include <iostream>                 // For console output
 #include <string>                   // For string handling
@@ -6,6 +6,11 @@
 #include "glm/glm.hpp"              // GLM math library for vectors and matrices
 #include "glm/gtc/matrix_transform.hpp" // GLM functions for creating transformation matrices
 #include "glm/gtc/type_ptr.hpp"     // GLM functions for converting matrices to arrays
+
+// Our abstracted classes
+#include "Shader.h"
+#include "Mesh.h"
+#include "Renderer.h"
 
 // =================================================================
 // TEXTURE LOADING HELPER FUNCTIONS
@@ -87,63 +92,6 @@ unsigned int CreateGradientTexture() {
     return textureID;
 }
 
-// =================================================================
-// SHADER COMPILATION HELPER FUNCTIONS
-// =================================================================
-
-// Function to compile a shader from source code
-unsigned int CompileShader(unsigned int type, const std::string& source) {
-    // Create a shader object of the specified type
-    unsigned int id = glCreateShader(type);
-    const char* src = source.c_str();
-
-    // Attach the source code to the shader and compile it
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    // Check for compilation errors
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, message);
-
-        std::cout << "Failed to compile "
-                  << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
-                  << " shader!" << std::endl;
-        std::cout << message << std::endl;
-
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-// Function to create a complete shader program from vertex and fragment shader sources
-unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-    // Create a shader program object
-    unsigned int program = glCreateProgram();
-
-    // Compile both shaders
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-    // Attach shaders to the program and link them
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    // Clean up individual shader objects (they're now part of the program)
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
-
 int main() {
     // =================================================================
     // STEP 1: Initialize GLFW
@@ -168,8 +116,8 @@ int main() {
     // =================================================================
     // STEP 3: Create Window and OpenGL Context
     // =================================================================
-    // Create a 960x540 window with the title "Learning OpenGL - Window Setup"
-    GLFWwindow* window = glfwCreateWindow(960, 540, "Learning OpenGL - Window Setup", NULL, NULL);
+    // Create a 960x540 window with the title "Learning OpenGL - Abstraction"
+    GLFWwindow* window = glfwCreateWindow(960, 540, "Learning OpenGL - Abstraction", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -199,115 +147,26 @@ int main() {
     glfwSwapInterval(1);
 
     // =================================================================
-    // STEP 4.5: Enable Depth Testing
+    // STEP 5: Create Renderer and Setup 3D State
     // =================================================================
-    // Enable depth testing for proper 3D rendering
-    glEnable(GL_DEPTH_TEST);
+    // Create our abstracted renderer object
+    Renderer renderer;
 
-    // Set depth function (GL_LESS is default - closer objects pass the test)
-    glDepthFunc(GL_LESS);
-
-    // Enable backface culling for performance (optional)
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);           // Cull back faces
-    glFrontFace(GL_CCW);           // Counter-clockwise vertices = front face
+    // Configure 3D rendering state through renderer
+    renderer.EnableDepthTesting();
+    renderer.EnableBackfaceCulling();
+    renderer.SetClearColour(0.2f, 0.3f, 0.8f, 1.0f); // Nice blue background
 
     // =================================================================
-    // STEP 5: Define 3D Cube Vertex Data with Texture Coordinates
+    // STEP 6: Create Mesh Object
     // =================================================================
-    // A cube has 8 vertices and 6 faces (12 triangles total).
-    // Each vertex has position (X,Y,Z), colour (R,G,B), and texture coordinates (U,V).
-
-    // Define 8 unique vertices for a cube with UV coordinates
-    float vertices[] = {
-        // Position        // Colour             // UV
-        // X      Y     Z     R     G     B      U     V
-        // Front face vertices
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // 0: Front-bottom-left - Red
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // 1: Front-bottom-right - Green
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  // 2: Front-top-right - Blue
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // 3: Front-top-left - Yellow
-
-        // Back face vertices
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,  // 4: Back-bottom-left - Magenta
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f, 0.0f,  // 5: Back-bottom-right - Cyan
-         0.5f,  0.5f, -0.5f,  1.0f, 0.5f, 0.0f,  0.0f, 1.0f,  // 6: Back-top-right - Orange
-        -0.5f,  0.5f, -0.5f,  0.5f, 0.5f, 0.5f,  1.0f, 1.0f   // 7: Back-top-left - Grey
-    };
-
-    // Define indices for cube faces (12 triangles = 36 indices)
-    // Each face uses 2 triangles, vertices in counter-clockwise order for front-facing
-    unsigned int indices[] = {
-        // Front face (Z = +0.5)
-        0, 1, 2,  2, 3, 0,
-        // Back face (Z = -0.5)
-        4, 5, 6,  6, 7, 4,
-        // Left face (X = -0.5)
-        7, 3, 0,  0, 4, 7,
-        // Right face (X = +0.5)
-        1, 5, 6,  6, 2, 1,
-        // Bottom face (Y = -0.5)
-        4, 0, 1,  1, 5, 4,
-        // Top face (Y = +0.5)
-        3, 7, 6,  6, 2, 3
-    };
+    // Use our abstracted Mesh class to create a textured cube
+    Mesh* cubeMesh = Mesh::CreateCube();
 
     // =================================================================
-    // STEP 6: Create Vertex Buffer Object (VBO)
+    // STEP 7: Create Shader Object
     // =================================================================
-    // A VBO stores vertex data in GPU memory for fast access during rendering.
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);                    // Generate a buffer ID
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);       // Bind as the active vertex buffer
-
-    // Upload our vertex data to the GPU
-    // GL_STATIC_DRAW means we set the data once and draw it many times
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // =================================================================
-    // STEP 7: Create Vertex Array Object (VAO)
-    // =================================================================
-    // A VAO stores the configuration of vertex attribute pointers.
-    // It remembers how to interpret the data in our VBO.
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);               // Generate a VAO ID
-    glBindVertexArray(VAO);                   // Bind as the active VAO
-
-    // Configure vertex attribute 0: Position
-    // Location 0 (matches shader), 3 components (X,Y,Z), GL_FLOAT type, not normalized,
-    // stride of 8*sizeof(float) (8 floats per vertex: XYZ + RGB + UV), offset 0
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);             // Enable position attribute
-
-    // Configure vertex attribute 1: Colour
-    // Location 1 (matches shader), 3 components (R,G,B), GL_FLOAT type, not normalized,
-    // stride of 8*sizeof(float), offset 3*sizeof(float) (skip the XYZ position data)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);             // Enable colour attribute
-
-    // Configure vertex attribute 2: Texture Coordinates
-    // Location 2 (matches shader), 2 components (U,V), GL_FLOAT type, not normalized,
-    // stride of 8*sizeof(float), offset 6*sizeof(float) (skip XYZ + RGB data)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);             // Enable texture coordinate attribute
-
-    // =================================================================
-    // STEP 8: Create Element Buffer Object (EBO)
-    // =================================================================
-    // An EBO stores indices that tell OpenGL which vertices to use for each triangle.
-    // This allows us to reuse vertices and avoid duplication.
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);                    // Generate an EBO ID
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // Bind as element buffer
-
-    // Upload index data to GPU
-    // GL_STATIC_DRAW because we set indices once and use them many times
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // =================================================================
-    // STEP 9: Define Shader Sources
-    // =================================================================
-    // Vertex Shader: Processes each vertex with transformation matrix and texture coordinates
+    // Define shader sources as strings
     std::string vertexShader =
         "#version 330 core\n"                          // GLSL version
         "layout (location = 0) in vec3 aPos;\n"        // Input: vertex position
@@ -327,7 +186,6 @@ int main() {
         "   texCoord = aTexCoord;\n"                   // Pass texture coordinates to fragment shader
         "}\n";
 
-    // Fragment Shader: Samples texture and blends with vertex colours
     std::string fragmentShader =
         "#version 330 core\n"                          // GLSL version
         "in vec3 vertexColour;\n"                      // Input: interpolated colour from vertex shader
@@ -344,33 +202,19 @@ int main() {
         "   FragColor = texColor * vec4(vertexColour, 1.0f);\n"
         "}\n";
 
-    // =================================================================
-    // STEP 10: Compile and Create Shader Program
-    // =================================================================
-    unsigned int shaderProgram = CreateShader(vertexShader, fragmentShader);
+    // Create our abstracted Shader object
+    Shader shader(vertexShader, fragmentShader);
 
     // =================================================================
-    // STEP 11: Create and Setup Textures
+    // STEP 8: Create and Setup Textures
     // =================================================================
     // Create two different textures for demonstration
     unsigned int checkerboardTexture = CreateCheckerboardTexture();
     unsigned int gradientTexture = CreateGradientTexture();
 
-    // Get the uniform location for our texture sampler in the shader
-    int textureLocation = glGetUniformLocation(shaderProgram, "u_Texture");
-    if (textureLocation == -1) {
-        std::cout << "Warning: Could not find u_Texture uniform in shader!" << std::endl;
-    }
-
     // =================================================================
-    // STEP 12: Setup Transformation Matrices
+    // STEP 9: Setup Transformation Matrices
     // =================================================================
-    // Get the uniform location for our MVP matrix in the shader
-    int mvpLocation = glGetUniformLocation(shaderProgram, "u_MVP");
-    if (mvpLocation == -1) {
-        std::cout << "Warning: Could not find u_MVP uniform in shader!" << std::endl;
-    }
-
     // Create projection matrix (perspective camera)
     glm::mat4 projection = glm::perspective(
         glm::radians(45.0f),    // Field of view (45 degrees)
@@ -387,41 +231,24 @@ int main() {
     );
 
     // =================================================================
-    // STEP 12: Set Clear Color
-    // =================================================================
-    // Set the color that will be used when clearing the screen
-    // RGBA values: (Red, Green, Blue, Alpha) - each from 0.0 to 1.0
-    glClearColor(0.2f, 0.3f, 0.8f, 1.0f); // Nice blue background
-
-    // =================================================================
-    // STEP 13: Main Render Loop with Transformations
+    // STEP 10: Main Render Loop with Abstracted Objects
     // =================================================================
     // Keep the window open and responsive until the user closes it
     while (!glfwWindowShouldClose(window)) {
 
-        // Clear the screen and depth buffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // =================================================================
-        // CREATE DYNAMIC TRANSFORMATIONS
-        // =================================================================
+        // Clear the screen using our abstracted renderer
+        renderer.Clear();
 
         // Get current time for animations
         float currentTime = static_cast<float>(glfwGetTime());
 
-        // Note: Individual model transformations are now handled per-cube below
+        // Bind our shader for all cubes
+        shader.Bind();
 
-        // =================================================================
-        // DRAW MULTIPLE CUBES AT DIFFERENT DEPTHS!
-        // =================================================================
+        // Bind our mesh for all cubes
+        cubeMesh->Bind();
 
-        // 1. Use our shader program
-        glUseProgram(shaderProgram);
-
-        // 3. Bind our VAO (this tells OpenGL how to interpret our vertex data)
-        glBindVertexArray(VAO);
-
-        // Draw multiple cubes to demonstrate depth testing
+        // Define cube positions for multiple cubes
         glm::vec3 cubePositions[] = {
             glm::vec3( 0.0f,  0.0f,  0.0f),   // Center cube
             glm::vec3( 2.0f,  0.0f, -1.0f),   // Right cube (further back)
@@ -430,6 +257,7 @@ int main() {
             glm::vec3(-1.0f,  0.8f, 1.0f)     // Left-top cube (closest)
         };
 
+        // Draw multiple cubes with different textures and transformations
         for (unsigned int i = 0; i < 5; i++) {
             // Create individual model matrix for each cube
             glm::mat4 cubeModel = glm::mat4(1.0f);
@@ -467,16 +295,16 @@ int main() {
             } else {
                 glBindTexture(GL_TEXTURE_2D, gradientTexture);      // Odd cubes use gradient
             }
-            glUniform1i(textureLocation, 0);  // Tell shader to use texture unit 0
+            shader.setUniform1i("u_Texture", 0);  // Tell shader to use texture unit 0
 
             // Calculate MVP matrix for this cube
             glm::mat4 cubeMvp = projection * view * cubeModel;
 
-            // Upload the MVP matrix to the shader for this cube
-            glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
+            // Upload the MVP matrix to the shader using our abstracted method
+            shader.setUniformMat4f("u_MVP", cubeMvp);
 
-            // Draw this cube using indexed rendering!
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            // Draw this cube using our abstracted renderer!
+            glDrawElements(GL_TRIANGLES, cubeMesh->GetIndexCount(), GL_UNSIGNED_INT, 0);
         }
 
         // Swap the front and back buffers (double buffering)
@@ -487,23 +315,22 @@ int main() {
     }
 
     // =================================================================
-    // STEP 14: Cleanup OpenGL Resources
+    // STEP 11: Cleanup Resources
     // =================================================================
-    // Clean up our OpenGL objects
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);              // Clean up Element Buffer Object
-    glDeleteTextures(1, &checkerboardTexture);  // Clean up textures
+    // Clean up our abstracted objects (destructors handle OpenGL cleanup)
+    delete cubeMesh;
+
+    // Clean up textures
+    glDeleteTextures(1, &checkerboardTexture);
     glDeleteTextures(1, &gradientTexture);
-    glDeleteProgram(shaderProgram);
 
     // =================================================================
-    // STEP 15: Cleanup GLFW
+    // STEP 12: Cleanup GLFW
     // =================================================================
     // Destroy the window and clean up GLFW resources
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    std::cout << "Multiple 3D textured cubes rendered successfully! Window closed." << std::endl;
+    std::cout << "Abstracted 3D textured cubes rendered successfully! Window closed." << std::endl;
     return 0;
 }

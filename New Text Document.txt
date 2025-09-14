@@ -1,0 +1,10 @@
+.vs/
+*.vcxproj.user
+*.suo
+*.obj
+*.exe
+*.pdb
+*.rar
+*.log
+*.cache
+x64/

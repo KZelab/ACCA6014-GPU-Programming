@@ -1,390 +1,406 @@
-# Branch: 07-texturing
+# Branch: 08-abstraction
 
 ## Learning Objective
-Master texture mapping and UV coordinate systems to apply detailed surface patterns to 3D objects. This branch introduces texture creation, sampling, coordinate systems, and filtering modes - fundamental techniques for creating realistic and visually appealing 3D graphics.
+Master software architecture and object-oriented design by refactoring monolithic OpenGL code into reusable, maintainable classes. This branch demonstrates the transition from procedural programming to proper abstraction layers that form the foundation of scalable graphics applications.
 
 ## What You'll Build
-Five rotating 3D cubes with alternating procedural textures - checkerboard and gradient patterns. The implementation demonstrates texture binding, UV coordinate mapping, and shader-based texture sampling with colour blending.
+The same five rotating textured cubes as previous branches, but now implemented using proper abstraction layers with Shader, Mesh, and Renderer classes. The functionality remains identical while the code becomes modular, reusable, and easier to maintain.
 
-![Expected Result](docs/images/07-texturing.png)
-*A 960x540 window displaying 5 rotating cubes with alternating checkerboard and gradient textures*
+![Expected Result](docs/images/08-abstraction.png)
+*A 960x540 window displaying the same 5 rotating textured cubes, now powered by abstracted class architecture*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Texture Mapping**: Applying 2D images to 3D surface geometry
-- **UV Coordinates**: 2D texture coordinate system (U=horizontal, V=vertical)
-- **Texture Sampling**: Reading colour values from textures in fragment shaders
-- **Procedural Textures**: Generating texture patterns algorithmically
-- **Texture Parameters**: Wrapping modes and filtering options
-- **Texture Units**: Managing multiple textures in OpenGL
-- **Texture Blending**: Combining texture colours with vertex colours
-- **Texture Memory Management**: Creating, binding, and deleting textures
+- **Class-Based Architecture**: Organizing code into logical, reusable components
+- **Separation of Concerns**: Each class handles one specific responsibility
+- **Encapsulation**: Hiding implementation details behind clean interfaces
+- **Resource Management**: RAII (Resource Acquisition Is Initialization) pattern
+- **Code Reusability**: Writing code that can be reused across different contexts
+- **Maintainability**: Structuring code for easy modification and extension
+- **Abstraction Layers**: Creating high-level interfaces over low-level OpenGL calls
+- **Object Lifetime Management**: Proper construction and destruction of resources
 
-### OpenGL Functions Introduced:
-- `glGenTextures()` - Generate texture object IDs
-- `glBindTexture()` - Bind texture as current active texture
-- `glTexImage2D()` - Upload texture data to GPU memory
-- `glTexParameteri()` - Set texture filtering and wrapping parameters
-- `glUniform1i()` - Set texture sampler uniform values
-- `glDeleteTextures()` - Clean up texture memory
+### Design Patterns Introduced:
+- **RAII Pattern**: Automatic resource management in constructors/destructors
+- **Factory Pattern**: Static methods for creating common objects (Mesh::CreateCube)
+- **Wrapper Pattern**: Encapsulating OpenGL state in C++ objects
+- **Interface Segregation**: Small, focused class interfaces
 
-### GLSL Functions Introduced:
-- `texture()` - Sample colour from texture at UV coordinates
-- `sampler2D` - GLSL texture sampler uniform type
-
-### Technical Terms:
-- **UV Coordinates**: 2D texture space coordinates, typically ranging 0.0 to 1.0
-- **Texture Atlas**: Single texture containing multiple sub-textures
-- **Texture Unit**: Hardware slot for binding textures (GL_TEXTURE0, GL_TEXTURE1, etc.)
-- **Texture Filtering**: Method for interpolating between texture pixels (nearest, linear)
-- **Texture Wrapping**: Behaviour at texture boundaries (repeat, clamp, mirror)
-- **Texel**: Single pixel in a texture (texture element)
-- **Mipmapping**: Pre-computed lower resolution versions for distant objects
-- **Anisotropic Filtering**: Advanced filtering for textures viewed at steep angles
+### Architecture Components:
+- **Shader Class**: Manages shader compilation, linking, and uniform setting
+- **Mesh Class**: Handles vertex data, VAO/VBO/EBO management
+- **Renderer Class**: Provides high-level rendering commands and OpenGL error checking
+- **Resource Management**: Automatic cleanup via destructors
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp    # Main application with textured 3D cubes
-└── CMakeHelloWorld.h      # Header file (if needed)
+├── CMakeHelloWorld.cpp    # Main application using abstracted classes
+├── Shader.h/.cpp          # Shader compilation and uniform management
+├── Mesh.h/.cpp            # Vertex data and geometry abstraction
+├── Renderer.h/.cpp        # High-level rendering commands
+├── VertexArray.h/.cpp     # VAO wrapper (from main branch)
+├── VertexBuffer.h/.cpp    # VBO wrapper (from main branch)
+├── IndexBuffer.h/.cpp     # EBO wrapper (from main branch)
+└── VertexBufferLayout.h   # Vertex attribute layout helper
 
 Dependencies:
-├── OpenGL 3.3+           # Texture mapping support
-└── GLM Library           # 3D mathematics and transformations
+├── OpenGL 3.3+           # Graphics API
+└── GLM Library           # Mathematics
 ```
 
-### Texture Pipeline
+### Class Responsibility Diagram
 ```
-Texture Creation → GPU Upload → Shader Binding → UV Sampling → Colour Output
-       ↓              ↓            ↓             ↓            ↓
-   glGenTextures   glTexImage2D   glBindTexture  texture()   FragColor
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Application   │───▶│     Renderer     │───▶│   OpenGL API    │
+│ CMakeHelloWorld │    │ High-level draws │    │ Low-level calls │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────┐    ┌──────────────────┐
+│     Shader      │    │      Mesh        │
+│ Compile & Link  │    │ Vertex/Index     │
+│ Uniform Setting │    │ Data Management  │
+└─────────────────┘    └──────────────────┘
 ```
 
-### Vertex Data Structure
+### OpenGL State Management
 ```
-Each vertex: Position (XYZ) + Colour (RGB) + UV (UV) = 8 floats
-Vertex layout: [X, Y, Z, R, G, B, U, V]
-Total cube data: 8 vertices × 8 floats = 64 floats
+Before (Monolithic):
+- Manual glGenBuffers, glBindBuffer, glBufferData
+- Manual glGenVertexArrays, glBindVertexArray
+- Manual glCreateShader, glCompileShader, glLinkProgram
+- Manual cleanup with glDelete* functions
+
+After (Abstracted):
+- Automatic resource management via RAII
+- Clean interfaces: shader.Bind(), mesh.Bind()
+- Exception-safe resource cleanup
+- Centralized error checking and debugging
 ```
 
-## What's Different from Previous Branch (06-depth-testing)
+## What's Different from Previous Branch (07-texturing)
 
 ### New Additions:
-- **UV texture coordinates** added to vertex data (2 floats per vertex)
-- **Procedural texture generation** with checkerboard and gradient patterns
-- **Texture sampler uniforms** in fragment shader for texture access
-- **Texture binding and management** in render loop
-- **Texture filtering parameters** (nearest vs linear interpolation)
-- **Multiple texture support** with alternating patterns per cube
-- **Texture memory cleanup** in application shutdown
+- **Shader Class**: Encapsulates shader compilation, linking, and uniform management
+- **Mesh Class**: Manages vertex data, VAO/VBO/EBO creation and binding
+- **Renderer Class**: Provides high-level rendering commands and error checking
+- **RAII Resource Management**: Automatic OpenGL resource cleanup
+- **Modular Architecture**: Separated concerns into focused classes
+- **Error Checking Macros**: GlCall macro for debugging OpenGL errors
+- **Factory Methods**: Static creation methods for common objects
 
 ### What Stayed the Same:
-- 3D cube geometry with 8 vertices and indexed rendering
-- Depth testing and backface culling optimisations
-- MVP transformation pipeline and camera setup
-- Multiple cube rendering with individual transformations
-- Keyboard input controls for interactive movement
+- Identical visual output (5 rotating textured cubes)
+- Same vertex data layout and shader logic
+- Same transformation matrices and camera setup
+- Same texture creation and binding
+- Same keyboard input handling
 
 ## Understanding the Code
 
-### UV Coordinate Mapping
+### Shader Class Architecture
 
-**Vertex Data with UV Coordinates:**
+**Header (Shader.h):**
 ```cpp
-float vertices[] = {
-    // Position        // Colour             // UV
-    // X      Y     Z     R     G     B      U     V
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
-     0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,  // Bottom-right
-     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,  // Top-right
-    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
+class Shader {
+private:
+    std::string m_Filepath;
+    unsigned int m_RendererID;
+    std::unordered_map<std::string, int> m_uniformLocationCache;
+
+public:
+    Shader(const std::string& filepath);  // File-based constructor
+    Shader(const char* vertexSrc, const char* fragmentSrc);  // String-based
+    ~Shader();  // RAII cleanup
+
+    void Bind() const;
+    void Unbind() const;
+    void setUniformMat4f(const std::string& name, const glm::mat4& matrix);
+    // ... other uniform setters
 };
 ```
 
-**Vertex Attribute Configuration:**
+**Key Features:**
+- **Uniform Caching**: Avoids expensive glGetUniformLocation calls
+- **Multiple Constructors**: Support for file-based and string-based shaders
+- **RAII**: Automatic glDeleteProgram in destructor
+- **Error Handling**: Comprehensive shader compilation error reporting
+
+### Mesh Class Architecture
+
+**Vertex Structure:**
 ```cpp
-// Position attribute (location = 0)
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-
-// Colour attribute (location = 1)
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-
-// Texture coordinate attribute (location = 2)
-glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+struct Vertex {
+    float position[3];   // XYZ coordinates
+    float colour[3];     // RGB colour values
+    float texCoords[2];  // UV texture coordinates
+};
 ```
 
-### Procedural Texture Generation
-
-**Checkerboard Pattern:**
+**Mesh Management:**
 ```cpp
-unsigned int CreateCheckerboardTexture() {
-    const int width = 8, height = 8;
-    unsigned char textureData[width * height * 3];
+class Mesh {
+private:
+    unsigned int m_VAO, m_VBO, m_EBO;
+    std::vector<Vertex> m_Vertices;
+    std::vector<unsigned int> m_Indices;
 
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            bool isWhite = ((x + y) % 2) == 0;
-            unsigned char color = isWhite ? 255 : 64;
+public:
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
+    ~Mesh();  // RAII cleanup
 
-            int index = (y * width + x) * 3;
-            textureData[index + 0] = color; // Red
-            textureData[index + 1] = color; // Green
-            textureData[index + 2] = color; // Blue
-        }
-    }
-
-    // Upload to GPU and set parameters...
-}
+    void Bind() const;
+    static Mesh* CreateCube();  // Factory method
+};
 ```
 
-**Gradient Pattern:**
+**Advantages:**
+- **Type Safety**: Structured vertex data instead of raw float arrays
+- **Memory Management**: Automatic VAO/VBO/EBO cleanup
+- **Factory Pattern**: Easy creation of common geometries
+- **Reusability**: Same mesh can be drawn multiple times
+
+### Renderer Class Architecture
+
+**Error Checking Macros:**
 ```cpp
-unsigned int CreateGradientTexture() {
-    const int width = 16, height = 16;
-    unsigned char textureData[width * height * 3];
+#define ASSERT(x) if (!(x)) __debugbreak();
 
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            unsigned char red = (255 * x) / (width - 1);   // Horizontal gradient
-            unsigned char blue = (255 * y) / (height - 1);  // Vertical gradient
-            unsigned char green = 128;                       // Constant
-
-            int index = (y * width + x) * 3;
-            textureData[index + 0] = red;
-            textureData[index + 1] = green;
-            textureData[index + 2] = blue;
-        }
-    }
-
-    // Upload to GPU and set parameters...
-}
+#define GlCall(x) glClearError();\
+    x;\
+    ASSERT(glLogCall(#x, __FILE__, __LINE__))
 ```
 
-### Shader Texture Sampling
-
-**Vertex Shader (passes UV coordinates):**
-```glsl
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColour;
-layout (location = 2) in vec2 aTexCoord;
-
-uniform mat4 u_MVP;
-
-out vec3 vertexColour;
-out vec2 texCoord;
-
-void main() {
-    gl_Position = u_MVP * vec4(aPos, 1.0);
-    vertexColour = aColour;
-    texCoord = aTexCoord;   // Pass UV to fragment shader
-}
-```
-
-**Fragment Shader (samples texture):**
-```glsl
-#version 330 core
-in vec3 vertexColour;
-in vec2 texCoord;
-
-uniform sampler2D u_Texture;
-out vec4 FragColor;
-
-void main() {
-    vec4 texColor = texture(u_Texture, texCoord);  // Sample texture
-    FragColor = texColor * vec4(vertexColour, 1.0);  // Blend with vertex colour
-}
-```
-
-### Texture Binding in Render Loop
-
+**Rendering Interface:**
 ```cpp
-for (unsigned int i = 0; i < 5; i++) {
-    // Alternate between textures for visual variety
-    if (i % 2 == 0) {
-        glBindTexture(GL_TEXTURE_2D, checkerboardTexture);
-    } else {
-        glBindTexture(GL_TEXTURE_2D, gradientTexture);
-    }
-    glUniform1i(textureLocation, 0);  // Use texture unit 0
+class Renderer {
+public:
+    void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+    void Clear() const;
+    void ClearColour_Black() const;
+    void ClearColour_White() const;
+};
+```
 
-    // Transform and draw cube...
-}
+**Benefits:**
+- **Error Detection**: Automatic OpenGL error checking and reporting
+- **High-Level Interface**: Simple Draw() calls instead of manual OpenGL
+- **Debugging Support**: File and line number reporting for errors
+- **State Management**: Centralized rendering state control
+
+### Refactored Main Loop
+
+**Before (Monolithic):**
+```cpp
+// Manual OpenGL calls scattered throughout main()
+glGenBuffers(1, &VBO);
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+glUseProgram(shaderProgram);
+glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
+glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+```
+
+**After (Abstracted):**
+```cpp
+// Clean object-oriented interface
+Mesh* cubeMesh = Mesh::CreateCube();
+Shader shader(vertexShader, fragmentShader);
+Renderer renderer;
+
+// In render loop:
+shader.Bind();
+cubeMesh->Bind();
+shader.setUniformMat4f("u_MVP", cubeMvp);
+glDrawElements(GL_TRIANGLES, cubeMesh->GetIndexCount(), GL_UNSIGNED_INT, 0);
 ```
 
 ## Try These Experiments
 
 ### Beginner Challenges:
-1. **Modify UV coordinates** to scale textures:
+1. **Add new uniform setters**:
    ```cpp
-   // Double texture repeat by scaling UV coordinates
-   -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,  // Scale to 2.0, 2.0
-    0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  2.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  2.0f, 2.0f,
-   -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 2.0f,
-   ```
-
-2. **Change texture filtering**:
-   ```cpp
-   // Switch from nearest (pixelated) to linear (smooth)
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   ```
-
-3. **Experiment with wrapping modes**:
-   ```cpp
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-   ```
-
-### Intermediate Challenges:
-1. **Create animated UV coordinates**:
-   ```cpp
-   // In vertex shader
-   vec2 animatedUV = aTexCoord + vec2(u_Time * 0.1, 0.0);  // Scrolling texture
-   texCoord = animatedUV;
-   ```
-
-2. **Add more procedural patterns**:
-   ```cpp
-   unsigned int CreateCircleTexture() {
-       // Create concentric circles pattern
-       for (int y = 0; y < height; y++) {
-           for (int x = 0; x < width; x++) {
-               float centerX = width * 0.5f;
-               float centerY = height * 0.5f;
-               float distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
-               unsigned char intensity = (unsigned char)(255 * (sin(distance * 0.5f) * 0.5f + 0.5f));
-           }
-       }
+   // In Shader class, add:
+   void setUniform3f(const std::string& name, const glm::vec3& vector) {
+       GlCall(glUniform3fv(getUniformLocation(name), 1, &vector[0]));
    }
    ```
 
-3. **Implement texture atlasing**:
+2. **Create different mesh types**:
    ```cpp
-   // Use different UV regions for different cube faces
-   vec2 atlasUV = aTexCoord * 0.25;  // Scale to quarter size
-   if (faceID == 1) atlasUV.x += 0.25;  // Offset for different faces
-   if (faceID == 2) atlasUV.y += 0.25;
+   // Add to Mesh class:
+   static Mesh* CreateTriangle();
+   static Mesh* CreateQuad();
+   static Mesh* CreateSphere(int subdivisions);
+   ```
+
+3. **Add renderer state methods**:
+   ```cpp
+   // In Renderer class:
+   void EnableWireframe() const;
+   void SetViewport(int x, int y, int width, int height) const;
+   ```
+
+### Intermediate Challenges:
+1. **Implement shader hot-reloading**:
+   ```cpp
+   class Shader {
+       void ReloadFromFile();  // Re-read and recompile shader file
+       bool CheckFileModified();  // Check if file changed on disk
+   };
+   ```
+
+2. **Add mesh transformation support**:
+   ```cpp
+   class Mesh {
+       void Transform(const glm::mat4& matrix);  // Apply transformation to vertices
+       void Scale(float factor);
+       void Translate(const glm::vec3& offset);
+   };
+   ```
+
+3. **Create material system**:
+   ```cpp
+   struct Material {
+       glm::vec3 ambient, diffuse, specular;
+       float shininess;
+       unsigned int diffuseTexture, normalTexture;
+   };
    ```
 
 ### Advanced Challenges:
-1. **Load textures from image files**:
-   - Integrate image loading library (stb_image, SOIL, etc.)
-   - Support PNG, JPG, BMP formats
-   - Handle different colour formats (RGB, RGBA)
+1. **Implement render batching**:
+   - Group similar objects to reduce draw calls
+   - Sort by shader, then by texture, then by mesh
+   - Use instanced rendering for identical objects
 
-2. **Implement multi-texturing**:
-   - Bind multiple textures simultaneously
-   - Blend between different texture layers
-   - Use alpha channels for transparency
+2. **Add memory profiling**:
+   - Track OpenGL memory usage
+   - Monitor vertex buffer and texture memory
+   - Implement resource pooling
 
-3. **Add normal mapping preparation**:
-   - Create tangent space vectors
-   - Prepare for bump mapping and normal mapping
-   - Calculate proper coordinate systems per face
+3. **Create scene graph**:
+   - Hierarchical object relationships
+   - Automatic transformation inheritance
+   - Efficient frustum culling
 
 ## Common Issues & Solutions
 
-### "Textures appear black or white"
-**Texture Binding Problems:**
-- **Texture not bound**: Ensure `glBindTexture()` is called before drawing
-- **Uniform not set**: Check `glUniform1i(textureLocation, 0)` is called
-- **Wrong texture unit**: Verify texture unit matches uniform value
-- **Texture not generated**: Confirm `glGenTextures()` and `glTexImage2D()` succeed
+### "Linker errors with new classes"
+**Build Configuration Problems:**
+- **Missing source files**: Ensure all .cpp files are in Visual Studio project
+- **Include path issues**: Check header file paths and dependencies
+- **Circular includes**: Use forward declarations in headers
+- **Static library linking**: Verify OpenGL libraries are linked correctly
 
-### "Textures appear stretched or distorted"
-**UV Coordinate Issues:**
-- **Wrong UV values**: Ensure UV coordinates range from 0.0 to 1.0 for normal mapping
-- **Incorrect stride**: Verify vertex attribute pointer stride includes UV data
-- **UV attribute disabled**: Check `glEnableVertexAttribArray(2)` for UV attribute
-- **Wrong offset**: Confirm UV offset calculation (6 * sizeof(float))
+### "Runtime crashes in destructors"
+**Resource Management Issues:**
+- **Double deletion**: Ensure resources aren't deleted multiple times
+- **Use after destruction**: Don't use objects after they're destroyed
+- **OpenGL context**: Ensure OpenGL context exists when destructors run
+- **Exception safety**: Use RAII consistently throughout codebase
 
-### "Textures appear pixelated or blurry"
-**Filtering Parameter Issues:**
-- **Wrong filter mode**: Use `GL_NEAREST` for pixelated, `GL_LINEAR` for smooth
-- **Missing mipmap**: Consider `GL_LINEAR_MIPMAP_LINEAR` for distant objects
-- **Texture size mismatch**: Use power-of-two dimensions for better compatibility
+### "Performance regression with abstraction"
+**Overhead Concerns:**
+- **Virtual function calls**: Keep hot paths non-virtual where possible
+- **Excessive state changes**: Batch similar rendering operations
+- **Memory allocations**: Pre-allocate containers and reuse objects
+- **Debug vs Release**: Ensure compiler optimizations are enabled
 
-### "Application crashes during texture operations"
-**Memory Management Problems:**
-- **Invalid texture ID**: Check texture generation succeeded
-- **Wrong texture format**: Ensure format matches data (RGB vs RGBA)
-- **Memory leak**: Always call `glDeleteTextures()` in cleanup
-- **Double deletion**: Don't delete the same texture twice
+### "Debugging abstracted OpenGL calls"
+**Error Tracking Issues:**
+- **GlCall macro**: Use consistently for all OpenGL calls
+- **Error context**: Check which specific call failed
+- **State validation**: Verify OpenGL state before operations
+- **Resource tracking**: Monitor resource creation and deletion
 
 ## What's Next?
 
-In the next branch (`08-abstraction`), we'll:
-- **Refactor code architecture** by breaking apart the monolithic source file
-- **Create Shader class** for shader compilation and management
-- **Implement Mesh class** for vertex data and rendering abstraction
-- **Build Renderer class** for high-level rendering commands
-- **Establish project structure** that scales to complex applications
-- **Prepare foundation** for advanced features like lighting and materials
+In the next branch (`09-test-harness`), we'll:
+- **Implement testing framework** from the main branch architecture
+- **Add unit tests** for our abstracted classes
+- **Create integration tests** for rendering pipeline
+- **Set up automated testing** for graphics code validation
+- **Learn testing patterns** specific to graphics programming
+- **Establish quality assurance** practices for continued development
 
 ## Resources for Deeper Learning
 
 ### Essential Reading:
-- [LearnOpenGL - Textures](https://learnopengl.com/Getting-started/Textures)
-- [OpenGL Wiki - Texture](https://www.khronos.org/opengl/wiki/Texture)
-- [Real-Time Rendering - Texture Mapping](http://www.realtimerendering.com/)
+- [Effective C++ by Scott Meyers](https://www.amazon.com/Effective-Specific-Improve-Programs-Designs/dp/0321334876)
+- [Clean Code by Robert Martin](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350884)
+- [Game Engine Architecture by Jason Gregory](https://www.gameenginebook.com/)
 
 ### Video Tutorials:
-- [The Cherno OpenGL - Textures](https://www.youtube.com/watch?v=n4k7ANAFsIQ)
-- [OpenGL Texture Mapping Fundamentals](https://www.youtube.com/results?search_query=opengl+texture+mapping)
+- [The Cherno C++ Series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
+- [OpenGL Abstraction Patterns](https://www.youtube.com/results?search_query=opengl+abstraction+patterns)
 
 ### Deep Dive Topics:
-- Texture compression formats (DXT, ETC, ASTC)
-- Advanced filtering techniques (anisotropic filtering)
-- Procedural texture generation algorithms
-- Texture streaming and memory management
-- UV unwrapping and texture painting workflows
-- Texture arrays and 3D textures
+- RAII and modern C++ resource management
+- Design patterns in game engine architecture
+- OpenGL debugging and profiling techniques
+- Memory management in graphics applications
+- Component-based entity systems
+- Render graph architecture
 
 ### Tools for Development:
-- **RenderDoc**: Inspect texture data and binding states
-- **Texture Tools**: NVIDIA Texture Tools, AMD Compressonator
-- **Image Libraries**: stb_image, SOIL, FreeImage for loading files
+- **Visual Studio Debugger**: Step through abstracted object lifetimes
+- **RenderDoc**: Analyze abstracted rendering calls
+- **Application Verifier**: Detect resource leaks and errors
 
 ## Debug Tips
 
-### Checking Texture State:
+### Checking Object Lifetime:
 ```cpp
-// Verify texture was created successfully
-GLuint textureID;
-glGenTextures(1, &textureID);
-if (textureID == 0) {
-    std::cout << "Error: Failed to generate texture!" << std::endl;
+// Add logging to constructors/destructors
+Shader::Shader(const std::string& filepath) {
+    std::cout << "Creating shader: " << filepath << std::endl;
+    // ... construction code
+}
+
+Shader::~Shader() {
+    std::cout << "Destroying shader: " << m_Filepath << std::endl;
+    GlCall(glDeleteProgram(m_RendererID));
 }
 ```
 
-### Debugging UV Coordinates:
+### Validating OpenGL State:
 ```cpp
-// Output UV coordinates as colours in fragment shader
-FragColor = vec4(texCoord.x, texCoord.y, 0.0, 1.0);  // Red=U, Green=V
+// Add state validation methods
+void Renderer::ValidateState() const {
+    GLint currentProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    std::cout << "Current shader program: " << currentProgram << std::endl;
+}
 ```
 
-### Texture Parameter Verification:
+### Memory Leak Detection:
 ```cpp
-// Check current texture parameters
-GLint wrapS, wrapT, minFilter, magFilter;
-glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
-glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
-glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter);
-glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter);
+// Track resource creation/deletion
+static int shaderCount = 0;
+
+Shader::Shader(...) {
+    ++shaderCount;
+    std::cout << "Shader count: " << shaderCount << std::endl;
+}
+
+Shader::~Shader() {
+    --shaderCount;
+    std::cout << "Shader count: " << shaderCount << std::endl;
+}
 ```
 
-### Common Texture Mistakes:
-- Forgetting to bind texture before setting parameters
-- Not enabling texture coordinate vertex attribute
-- Using wrong texture unit in uniform (glUniform1i value)
-- Incorrect UV coordinate ranges or vertex data layout
-- Missing texture deletion causing memory leaks
+### Common Abstraction Mistakes:
+- Creating objects without proper OpenGL context
+- Forgetting to call Bind() before using objects
+- Not handling OpenGL errors consistently
+- Mixing raw OpenGL calls with abstracted classes
+- Improper resource cleanup ordering
 
 ---
 
-**Congratulations!** You've successfully implemented texture mapping and UV coordinate systems! Texture mapping is fundamental to modern 3D graphics - every game, 3D application, and visualization tool relies on textures to create detailed, realistic surfaces. You now understand the complete pipeline from procedural texture generation to GPU sampling and rendering.
+**Congratulations!** You've successfully refactored monolithic OpenGL code into a clean, maintainable class-based architecture! This abstraction foundation is essential for building complex graphics applications. Every major game engine and graphics framework uses similar abstraction patterns to manage OpenGL complexity and create reusable, testable code.

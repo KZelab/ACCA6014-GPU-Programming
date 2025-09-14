@@ -20,9 +20,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CMakeHelloWorld.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\VertexArray.cpp" />
+    <ClCompile Include="src\VertexBuffer.cpp" />
+    <ClCompile Include="src\IndexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CMakeHelloWorld.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\VertexArray.h" />
+    <ClInclude Include="src\VertexBuffer.h" />
+    <ClInclude Include="src\IndexBuffer.h" />
+    <ClInclude Include="src\VertexBufferLayout.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
