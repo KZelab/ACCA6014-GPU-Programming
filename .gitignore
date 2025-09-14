@@ -1,10 +1,50 @@
-.vs/
-*.vcxproj.user
-*.suo
-*.obj
-*.exe
-*.pdb
-*.rar
-*.log
-*.cache
+# Build directories
 x64/
+Debug/
+Release/
+out/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.vcxproj.user
+*.sln.docstates
+
+# Build files
+*.obj
+*.pdb
+*.exe
+*.ilk
+*.log
+*.tlog
+*.idb
+*.dll
+*.lastbuildstate
+*.recipe
+*.FileListAbsolute.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.rar
+
+# IDE files
+.vscode/
+.idea/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Local settings
+.claude/settings.local.json
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+
+# Backup files
+*.backup.*
+*~

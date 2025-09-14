@@ -1,141 +1,95 @@
 ﻿#include <GL/glew.h>                // GLEW library for managing OpenGL extensions
 #include <GLFW/glfw3.h>             // GLFW for window management and input handling
 #include <iostream>                 // For console output
-#include <string>
-
-#include "glm/glm.hpp"              // GLM for mathematical operations and matrix manipulation
-#include "glm/gtc/matrix_transform.hpp" // For GLM transformations, like translating matrices
-
-#include "VertexBufferLayout.h"     // Custom layout wrapper for vertex attributes
-#include "Renderer.h"               // Custom renderer wrapper
-#include "Shader.h"                 // Custom shader wrapper
-#include "Mesh/Cube.h"
-#include "tests/testEffects.h"
-#include "tests/TestLightingShader.h"
-#include "tests/Tests.h"
-
-#include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
-#include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
-#include "vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
-
-
-
-#define IMGUI_IMPL_OPENGL_LOADER_GLEW // ImGui macro to specify GLEW as the OpenGL loader
 
 int main() {
-    // Initialize GLFW to create a window and manage the OpenGL context
+    // =================================================================
+    // STEP 1: Initialize GLFW
+    // =================================================================
+    // GLFW is a library that handles window creation, input, and OpenGL context management.
+    // It abstracts away platform-specific window creation code.
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW \n";
+        std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
 
-    // Set GLFW window hints for OpenGL version and profile
+    // =================================================================
+    // STEP 2: Configure OpenGL Context
+    // =================================================================
+    // Tell GLFW what version of OpenGL we want to use.
+    // We're requesting OpenGL 3.3 Core Profile, which gives us modern OpenGL
+    // without the deprecated legacy functions.
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Major version 3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Minor version 3
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core profile
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core profile (modern OpenGL)
 
-    // Create a windowed mode window and OpenGL context
-    GLFWwindow* window = glfwCreateWindow(960, 540, "GLFW Window", NULL, NULL);
+    // =================================================================
+    // STEP 3: Create Window and OpenGL Context
+    // =================================================================
+    // Create a 960x540 window with the title "Learning OpenGL - Window Setup"
+    GLFWwindow* window = glfwCreateWindow(960, 540, "Learning OpenGL - Window Setup", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
+
+    // Make the window's OpenGL context current on the calling thread
     glfwMakeContextCurrent(window);
 
-    // Initialize GLEW to manage OpenGL function pointers and extensions
+    // =================================================================
+    // STEP 4: Initialize GLEW
+    // =================================================================
+    // GLEW (GL Extension Wrangler) loads OpenGL function pointers.
+    // Modern OpenGL functions are loaded at runtime, not linked at compile time.
     glewExperimental = GL_TRUE; // Enable modern OpenGL functionality
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         glfwTerminate();
         return -1;
     }
-    std::cout << "GLEW VERSION:" << glGetString(GL_VERSION) << std::endl;
 
-    glfwSwapInterval(1); // Enable V-Sync for smoother rendering
+    // Print OpenGL version to verify everything is working
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "Graphics Card: " << glGetString(GL_RENDERER) << std::endl;
 
+    // Enable V-Sync (synchronize with monitor refresh rate)
+    glfwSwapInterval(1);
 
-    // Scoped block for managing OpenGL resources
-    //Resource Management (RAII): Using curly braces { ... } creates a block scope in C++. 
-    // When you define variables within this scope, they automatically go out of scope (and are destroyed) when execution leaves that block. 
-    // This helps with automatic resource management for objects like VertexArray, VertexBuffer, IndexBuffer, 
-    // and others that might be handling OpenGL resources (like buffers or shaders).
-    // By structuring your code this way, you ensure that certain objects are destructed at the right time and their resources are released without needing manual cleanup code.
+    // =================================================================
+    // STEP 5: Set Clear Color
+    // =================================================================
+    // Set the color that will be used when clearing the screen
+    // RGBA values: (Red, Green, Blue, Alpha) - each from 0.0 to 1.0
+    glClearColor(0.2f, 0.3f, 0.8f, 1.0f); // Nice blue background
 
+    // =================================================================
+    // STEP 6: Main Render Loop
+    // =================================================================
+    // Keep the window open and responsive until the user closes it
+    while (!glfwWindowShouldClose(window)) {
 
+        // Clear the screen with our chosen clear color
+        glClear(GL_COLOR_BUFFER_BIT);
 
-        Renderer renderer; // Renderer object for handling draw calls
+        // At this point, we would draw our 3D objects...
+        // But for now, we just have a colored background!
 
-        // Setup Dear ImGui context for GUI rendering
-        ImGui::CreateContext();
-        ImGui_ImplGlfw_InitForOpenGL(window, true); // Initialize ImGui for OpenGL + GLFW
-        ImGui::StyleColorsDark(); // Set default dark theme
+        // Swap the front and back buffers (double buffering)
+        // This prevents flickering by drawing to a hidden buffer first
+        glfwSwapBuffers(window);
 
-        if (!ImGui_ImplOpenGL3_Init()) {
-            std::cerr << "ImGui OpenGL3 initialization failed" << std::endl;
-            return -1;
-        }
-        test::Tests* currentTest = nullptr;
-        test::TestMenu* TestMenu = new test::TestMenu(currentTest);
+        // Check for window events (keyboard, mouse, window resize, etc.)
+        glfwPollEvents();
+    }
 
-        currentTest = TestMenu;
-
-        //TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
-        TestMenu->RegisterTest<test::TestLightingShader>("Lighting shader", window);
-        TestMenu->RegisterTest<test::testEffects>("Effects shader", window);
-
-
-        float lastTimeFrame = 0.0f;
-        float deltaTime = 0.0f;
-
-
-	// Main rendering loop
-        while (!glfwWindowShouldClose(window)) {
-
-            float currentFrameTime = static_cast<float>(glfwGetTime());
-
-            deltaTime = currentFrameTime - lastTimeFrame;
-
-            lastTimeFrame = currentFrameTime;
-
-            renderer.Clear(); // Clear the screen to prepare for a new frame
-            //renderer.ClearColour_White();
-
-            // Start ImGui frame
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-            if (currentTest)
-            {
-                currentTest->Update(deltaTime);
-                currentTest->Render();
-                ImGui::Begin("Test control panel");
-                if (currentTest != TestMenu && ImGui::Button("<-"))
-                {
-                    delete currentTest;
-                    currentTest = TestMenu;
-                }
-                    currentTest->RenderGUI();
-                ImGui::End();
-            }
-            ImGui::Render(); // Render ImGui frame
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // Draw ImGui to the screen
-        
-            // Swap front and back buffers
-            glfwSwapBuffers(window);
-            // Poll events (keyboard, mouse, etc.)
-            glfwPollEvents();
-        }
-
-        delete currentTest;
-        if(currentTest != TestMenu)
-            delete TestMenu;
-
-    // Shutdown ImGui and GLFW
-    ImGui_ImplGlfw_Shutdown();
-    // Cleanup resources and destroy window
+    // =================================================================
+    // STEP 7: Cleanup
+    // =================================================================
+    // Destroy the window and clean up GLFW resources
     glfwDestroyWindow(window);
     glfwTerminate();
 
+    std::cout << "Window closed successfully!" << std::endl;
     return 0;
 }
