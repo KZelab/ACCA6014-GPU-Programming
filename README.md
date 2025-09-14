@@ -48,11 +48,6 @@ src/
 ├── VertexBufferLayout.h      # Vertex attribute layout helper
 ├── tests/
 │   ├── Tests.h/.cpp          # Base test framework classes
-│   ├── TestShader.h/.cpp     # Interactive shader feature demonstration
-│   ├── TestMesh.h/.cpp       # Interactive mesh feature demonstration
-│   ├── TestRenderer.h/.cpp   # Interactive renderer feature demonstration
-│   ├── TestLightingShader.h/.cpp  # Advanced lighting demonstrations (from main)
-│   └── testEffects.h/.cpp    # Visual effects demonstrations (from main)
 └── vendor/
     └── imgui/                # Dear ImGui library for interactive GUI
         ├── imgui.h/.cpp
