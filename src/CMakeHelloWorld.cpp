@@ -11,6 +11,8 @@
 #include "Shader.h"                 // Custom shader wrapper
 #include "tests/Tests.h"
 #include "tests/testClearColour.h"
+#include "tests/testTexture2D.h"
+#include "tests/testRayCasting.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 #include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
@@ -78,8 +80,10 @@ int main() {
 
         currentTest = TestMenu;
 
-        // Register tests in the specified order for branch 10
+        // Register tests in the specified order for branch 10: fundamental concepts first
         TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
+        TestMenu->RegisterTest<test::testTexture2D>("Test Texture2D");
+        TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting");
 
 
         float lastTimeFrame = 0.0f;

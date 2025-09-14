@@ -1,39 +1,37 @@
-# Branch: 09-test-harness
+# Branch: 10-textures-and-raycasting
 
 ## Learning Objective
-Implement an interactive test harness for experimenting with and demonstrating OpenGL concepts using the abstracted classes from previous branches. This branch introduces the concept of modular testing, interactive GUI-based experimentation, and systematic validation of graphics programming techniques.
+Master 2D texture mapping, sampling techniques, and fundamental ray casting algorithms through interactive demonstrations. This branch builds upon the test harness foundation to explore advanced graphics programming concepts including texture operations, UV coordinate systems, and geometric intersection calculations.
 
 ## What You'll Build
-An interactive application with an ImGui-based test selection menu that allows you to experiment with different OpenGL concepts. Each test demonstrates specific features of our abstracted Shader, Mesh, and Renderer classes through real-time, interactive demonstrations.
+An interactive test suite with three focused demonstrations: basic framebuffer clearing, comprehensive 2D texture operations, and ray casting techniques. Each test provides real-time parameter adjustment and visual feedback to understand the underlying graphics programming concepts.
 
-![Expected Result](docs/images/09-test-harness.png)
-*A 960x540 window with an ImGui interface for selecting and interacting with different OpenGL concept demonstrations*
+![Expected Result](docs/images/10-textures-and-raycasting.png)
+*A 960x540 window with an ImGui interface demonstrating texture mapping and ray casting concepts*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **Interactive Testing**: Building GUI-based tools for experimenting with graphics concepts
-- **Test Framework Architecture**: Modular system for registering and running different tests
-- **ImGui Integration**: Adding immediate mode GUI to OpenGL applications
-- **Concept Demonstration**: Using interactive tests to validate and showcase functionality
-- **Modular Test Design**: Creating focused tests that demonstrate specific features
-- **Real-Time Parameter Adjustment**: Using sliders and controls to modify rendering in real-time
-- **Educational Tool Development**: Building applications that teach through interaction
-- **Graphics Debugging**: Using visual tests to identify and solve rendering issues
+- **2D Texture Mapping**: Understanding UV coordinate systems and texture sampling
+- **Texture Operations**: Loading, binding, and manipulating texture data
+- **Texture Filtering**: Linear vs nearest neighbour sampling techniques
+- **Texture Wrapping**: Repeat, clamp, and mirror wrapping modes
+- **Ray Casting Fundamentals**: Ray-object intersection algorithms
+- **Geometric Calculations**: Vector mathematics for 3D graphics
+- **Interactive Parameter Testing**: Real-time adjustment of graphics parameters
+- **Visual Debugging**: Using colour coding and visual feedback for algorithm validation
 
-### Test Framework Components:
-- **Test Base Class**: Abstract interface for all test implementations
-- **Test Menu System**: Registration and navigation between different tests
-- **ImGui Controls**: Interactive widgets for real-time parameter adjustment
-- **Shader Testing**: Interactive demonstration of shader compilation and uniform handling
-- **Mesh Testing**: Visual validation of geometry creation and factory methods
-- **Renderer Testing**: OpenGL state management and rendering pipeline validation
+### Test Demonstrations:
+- **testClearColour**: Fundamental framebuffer clearing and colour management
+- **testTexture2D**: Comprehensive 2D texture operations and sampling techniques
+- **testRayCasting**: Ray-sphere and ray-plane intersection algorithms
 
-### Technical Implementation:
-- **Test Registration**: Template-based system for adding new tests
-- **Resource Management**: Proper cleanup of test-specific OpenGL resources
-- **GUI Layout**: Organised ImGui interfaces for each test type
-- **Real-Time Updates**: Delta time-based animations and parameter changes
+### Technical Features:
+- **Texture Loading**: Dynamic texture creation and GPU upload
+- **UV Coordinate Manipulation**: Real-time UV coordinate transformation
+- **Ray Generation**: Mouse-based ray casting from camera position
+- **Intersection Visualisation**: Real-time feedback for ray-object intersections
+- **Parameter Controls**: Interactive sliders for texture and ray casting parameters
 
 ## Code Architecture
 
@@ -110,23 +108,22 @@ TestMenu->RegisterTest<TestRenderer>("Renderer Abstraction", window);
 - Automatic memory management and cleanup
 - Extensible design for adding new test types
 
-## What's Different from Previous Branch (08-abstraction)
+## What's Different from Previous Branch (09-test-harness)
 
 ### New Additions:
-- **Interactive Test Framework**: Complete GUI-based system for concept demonstration
-- **ImGui Integration**: Real-time parameter adjustment and test navigation
-- **Modular Test System**: Extensible framework for adding new concept demonstrations
-- **TestShader**: Interactive demonstration of shader features and uniform handling
-- **TestMesh**: Visual validation of mesh creation and factory methods
-- **TestRenderer**: OpenGL state management and rendering pipeline testing
-- **Educational Interface**: Descriptive GUI elements explaining demonstrated concepts
-- **Delta Time Animation**: Smooth, time-based animations and parameter updates
+- **testTexture2D**: Comprehensive 2D texture mapping and sampling demonstration
+- **testRayCasting**: Interactive ray casting algorithms and intersection testing
+- **Advanced Graphics Concepts**: Moving beyond basic rendering to computational graphics
+- **Mathematical Visualisation**: Real-time display of geometric calculations
+- **Interactive Algorithm Testing**: Parameter adjustment for texture and ray casting operations
+- **Educational Progression**: Building from fundamental concepts to advanced techniques
 
 ### What Stayed the Same:
-- All abstracted classes (Shader, Mesh, Renderer) with identical functionality
-- RAII resource management and error checking
-- OpenGL 3.3 Core Profile rendering pipeline
-- Same mathematical foundations and transformation systems
+- Essential test framework architecture (Tests.h/cpp)
+- testClearColour as foundational demonstration
+- ImGui integration for interactive parameter control
+- Real-time visual feedback and educational interface
+- Clean project structure and modular design
 
 ## Understanding the Code
 
