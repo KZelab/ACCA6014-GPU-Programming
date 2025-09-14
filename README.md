@@ -38,75 +38,66 @@ An interactive test suite with three focused demonstrations: basic framebuffer c
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp       # Test harness main application with ImGui integration
+├── CMakeHelloWorld.cpp       # Test harness application with focused demonstrations
 ├── Shader.h/.cpp             # Shader compilation and uniform management
 ├── Mesh.h/.cpp               # Vertex data and geometry abstraction
 ├── Renderer.h/.cpp           # High-level rendering commands
-├── VertexArray.h/.cpp        # VAO wrapper (from main branch)
-├── VertexBuffer.h/.cpp       # VBO wrapper (from main branch)
-├── IndexBuffer.h/.cpp        # EBO wrapper (from main branch)
+├── VertexArray.h/.cpp        # VAO wrapper
+├── VertexBuffer.h/.cpp       # VBO wrapper
+├── IndexBuffer.h/.cpp        # EBO wrapper
 ├── VertexBufferLayout.h      # Vertex attribute layout helper
 ├── tests/
 │   ├── Tests.h/.cpp          # Base test framework classes
-│   ├── TestShader.h/.cpp     # Interactive shader feature demonstration
-│   ├── TestMesh.h/.cpp       # Interactive mesh feature demonstration
-│   ├── TestRenderer.h/.cpp   # Interactive renderer feature demonstration
-│   ├── TestLightingShader.h/.cpp  # Advanced lighting demonstrations (from main)
-│   └── testEffects.h/.cpp    # Visual effects demonstrations (from main)
+│   ├── testClearColour.h/.cpp # Basic framebuffer clearing demonstration
+│   ├── testTexture2D.h/.cpp  # 2D texture mapping and sampling techniques
+│   └── testRayCasting.h/.cpp # Ray casting algorithms and intersection testing
 └── vendor/
     └── imgui/                # Dear ImGui library for interactive GUI
-        ├── imgui.h/.cpp
-        ├── imgui_impl_glfw.h/.cpp
-        ├── imgui_impl_opengl3.h/.cpp
-        └── ... (additional ImGui files)
 
 Dependencies:
 ├── OpenGL 3.3+              # Graphics API
-├── GLM Library              # Mathematics
+├── GLM Library              # Vector and matrix mathematics
 ├── GLFW                     # Window management
 ├── GLEW                     # OpenGL extension loading
-└── Dear ImGui               # Immediate mode GUI
+└── Dear ImGui               # Interactive parameter controls
 ```
 
-### Test Framework Architecture
+### Test Demonstrations Overview
 
-The test harness follows a modular, extensible design:
+**testClearColour - Fundamental Concepts:**
+- Basic framebuffer clearing operations
+- Colour buffer, depth buffer, and stencil buffer management
+- Interactive colour selection and animation
+- OpenGL clear operations and state management
 
-**Main Application (CMakeHelloWorld.cpp):**
-- Initialises GLFW, GLEW, and ImGui systems
-- Creates and manages the test menu system
-- Provides main rendering loop with delta time calculation
-- Handles test navigation and GUI integration
+**testTexture2D - Texture Mapping:**
+- 2D texture creation and GPU upload
+- UV coordinate systems and texture sampling
+- Texture filtering modes (nearest, linear)
+- Texture wrapping modes (repeat, clamp, mirror)
+- Real-time texture parameter adjustment
+- Procedural texture generation and manipulation
 
-**Test Base Classes (Tests.h/cpp):**
-- Abstract Tests class defining common interface (Update, Render, RenderGUI)
-- TestMenu class managing test registration and selection
-- Template-based registration system for type-safe test creation
+**testRayCasting - Geometric Algorithms:**
+- Ray generation from camera/mouse position
+- Ray-sphere intersection calculations
+- Ray-plane intersection algorithms
+- Vector mathematics for 3D graphics
+- Real-time intersection visualisation
+- Interactive geometry parameter adjustment
 
-**Individual Test Classes:**
-- TestShader: Demonstrates shader compilation, uniform setting, and multiple shader programs
-- TestMesh: Shows mesh creation, factory methods, and geometry management
-- TestRenderer: Validates OpenGL state management and rendering pipeline
+### Educational Progression
 
-**ImGui Integration:**
-- Real-time parameter adjustment through sliders, colour pickers, and checkboxes
-- Interactive test selection via button-based menu system
-- Organised GUI panels with feature descriptions and controls
+**Learning Path:**
+1. **Clear Operations** → Understanding fundamental GPU operations
+2. **Texture Mapping** → 2D graphics and UV coordinate systems
+3. **Ray Casting** → 3D mathematics and geometric calculations
 
-### Test Registration System
-
-**Registration Process:**
-```cpp
-// In main application
-TestMenu->RegisterTest<TestShader>("Shader Abstraction", window);
-TestMenu->RegisterTest<TestMesh>("Mesh Abstraction", window);
-TestMenu->RegisterTest<TestRenderer>("Renderer Abstraction", window);
-```
-
-**Template-Based Creation:**
-- Type-safe test instantiation with constructor parameters
-- Automatic memory management and cleanup
-- Extensible design for adding new test types
+**Interactive Features:**
+- Real-time parameter sliders for immediate visual feedback
+- Colour pickers for intuitive colour selection
+- Mouse interaction for ray casting demonstrations
+- Educational descriptions explaining each concept
 
 ## What's Different from Previous Branch (09-test-harness)
 
@@ -127,304 +118,297 @@ TestMenu->RegisterTest<TestRenderer>("Renderer Abstraction", window);
 
 ## Understanding the Code
 
-### Test Framework Implementation
+### testClearColour Implementation
 
-**Header (Shader.h):**
+**Core Functionality:**
 ```cpp
-class Shader {
-private:
-    std::string m_Filepath;
-    unsigned int m_RendererID;
-    std::unordered_map<std::string, int> m_uniformLocationCache;
+// Basic framebuffer clearing with different buffer types
+void testClearColour::Render() {
+    if (m_ClearDepth && m_ClearStencil) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    } else if (m_ClearDepth) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    } else {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+}
+```
 
-public:
-    Shader(const std::string& filepath);  // File-based constructor
-    Shader(const char* vertexSrc, const char* fragmentSrc);  // String-based
-    ~Shader();  // RAII cleanup
+**Interactive Features:**
+- Colour presets for quick testing
+- Animated colour transitions
+- Buffer clearing options (colour, depth, stencil)
+- Real-time colour parameter adjustment
 
-    void Bind() const;
-    void Unbind() const;
-    void setUniformMat4f(const std::string& name, const glm::mat4& matrix);
-    // ... other uniform setters
+### testTexture2D Implementation
+
+**Core Texture Operations:**
+```cpp
+// Texture loading and binding in constructor
+m_Texture = std::make_unique<Texture>(R"(res/Textures/1.png)");
+m_Texture->Bind(); // Activate texture unit 0
+m_Shader->setUniform1i("u_Texture", 0); // Link shader uniform to texture unit 0
+
+// Vertex data with UV coordinates
+float positions[] = {
+   -50.0f, -50.0f, 0.0f, 0.0f, // Bottom-left with UV (0,0)
+    50.0f, -50.0f, 1.0f, 0.0f, // Bottom-right with UV (1,0)
+    50.0f,  50.0f, 1.0f, 1.0f, // Top-right with UV (1,1)
+   -50.0f,  50.0f, 0.0f, 1.0f  // Top-left with UV (0,1)
 };
 ```
 
-**Key Features:**
-- **Uniform Caching**: Avoids expensive glGetUniformLocation calls
-- **Multiple Constructors**: Support for file-based and string-based shaders
-- **RAII**: Automatic glDeleteProgram in destructor
-- **Error Handling**: Comprehensive shader compilation error reporting
+**Interactive Features:**
+- Real-time translation of textured quads using ImGui sliders
+- Multiple textured objects rendered simultaneously
+- UV coordinate mapping from 2D texture to geometry
+- Orthographic projection for clear 2D visualization
 
-### Mesh Class Architecture
+### testRayCasting Implementation
 
-**Vertex Structure:**
+**Ray Generation and Mathematics:**
 ```cpp
-struct Vertex {
-    float position[3];   // XYZ coordinates
-    float colour[3];     // RGB colour values
-    float texCoords[2];  // UV texture coordinates
-};
+// Calculate ray direction from mouse position
+glm::vec3 TestRayCasting::CalculateRayDirection(float mouseX, float mouseY) {
+    // Convert mouse position to NDC
+    float x = (2.0f * mouseX) / width - 1.0f;
+    float y = 1.0f - (2.0f * mouseY) / height; // Invert Y-axis
+
+    glm::vec4 rayClip(x, y, -1.0f, 1.0f);
+    glm::vec4 rayEye = glm::inverse(projectionMatrix) * rayClip;
+    rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+    glm::vec3 rayWorld = glm::vec3(glm::inverse(viewMatrix) * rayEye);
+    return glm::normalize(rayWorld);
+}
+
+// Ray-sphere intersection test
+bool TestRayCasting::RayIntersectsSphere(const glm::vec3& rayOrigin,
+    const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius) {
+    glm::vec3 oc = rayOrigin - sphereCenter;
+    float a = glm::dot(rayDirection, rayDirection);
+    float b = 2.0f * glm::dot(oc, rayDirection);
+    float c = glm::dot(oc, oc) - sphereRadius * sphereRadius;
+    float discriminant = b * b - 4 * a * c;
+    return discriminant > 0; // Intersection if discriminant > 0
+}
 ```
 
-**Mesh Management:**
+**3D Interactive Features:**
+- WASD camera movement through 3D space
+- Mouse-based ray casting from camera position
+- Real-time sphere intersection detection and highlighting
+- 3D sphere generation with parametric equations
+- Visual feedback through colour changes (green for selected, red for unselected)
+
+## Implementation Details
+
+### Texture Class Integration
+Both testTexture2D and testRayCasting rely on the existing graphics abstraction classes:
+
+**Texture Loading:**
 ```cpp
-class Mesh {
-private:
-    unsigned int m_VAO, m_VBO, m_EBO;
-    std::vector<Vertex> m_Vertices;
-    std::vector<unsigned int> m_Indices;
-
-public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
-    ~Mesh();  // RAII cleanup
-
-    void Bind() const;
-    static Mesh* CreateCube();  // Factory method
-};
+// In testTexture2D constructor
+m_Texture = std::make_unique<Texture>(R"(res/Textures/1.png)");
+m_Texture->Bind();
+m_Shader->setUniform1i("u_Texture", 0);
 ```
 
-**Advantages:**
-- **Type Safety**: Structured vertex data instead of raw float arrays
-- **Memory Management**: Automatic VAO/VBO/EBO cleanup
-- **Factory Pattern**: Easy creation of common geometries
-- **Reusability**: Same mesh can be drawn multiple times
-
-### Renderer Class Architecture
-
-**Error Checking Macros:**
+**Vertex Array Setup:**
 ```cpp
-#define ASSERT(x) if (!(x)) __debugbreak();
-
-#define GlCall(x) glClearError();\
-    x;\
-    ASSERT(glLogCall(#x, __FILE__, __LINE__))
+// Common pattern used in both tests
+m_VAO = std::make_unique<VertexArray>();
+m_VBO = std::make_unique<VertexBuffer>(vertices.data(), vertexSize);
+VertexBufferLayout layout;
+layout.Push<float>(3); // Position attributes
+m_VAO->AddBuffer(*m_VBO, layout);
 ```
 
-**Rendering Interface:**
+### Shader Integration
+Both tests use the existing Shader class for uniform management:
+
 ```cpp
-class Renderer {
-public:
-    void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
-    void Clear() const;
-    void ClearColour_Black() const;
-    void ClearColour_White() const;
-};
+// 2D texture test uses orthographic projection
+m_Proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.f, -1.0f, 1.0f);
+shader.setUniformMat4f("u_MVP", m_Proj * m_View * model);
+
+// 3D ray casting test uses perspective projection
+projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+shader.setUniformMat4f("projection", projectionMatrix);
 ```
 
-**Benefits:**
-- **Error Detection**: Automatic OpenGL error checking and reporting
-- **High-Level Interface**: Simple Draw() calls instead of manual OpenGL
-- **Debugging Support**: File and line number reporting for errors
-- **State Management**: Centralized rendering state control
+## Learning Experiments
 
-### Refactored Main Loop
-
-**Before (Monolithic):**
-```cpp
-// Manual OpenGL calls scattered throughout main()
-glGenBuffers(1, &VBO);
-glBindBuffer(GL_ARRAY_BUFFER, VBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-glUseProgram(shaderProgram);
-glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(cubeMvp));
-glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-```
-
-**After (Abstracted):**
-```cpp
-// Clean object-oriented interface
-Mesh* cubeMesh = Mesh::CreateCube();
-Shader shader(vertexShader, fragmentShader);
-Renderer renderer;
-
-// In render loop:
-shader.Bind();
-cubeMesh->Bind();
-shader.setUniformMat4f("u_MVP", cubeMvp);
-glDrawElements(GL_TRIANGLES, cubeMesh->GetIndexCount(), GL_UNSIGNED_INT, 0);
-```
-
-## Try These Experiments
-
-### Beginner Challenges:
-1. **Add new uniform setters**:
+### Texture Mapping Challenges:
+1. **Modify UV coordinates**:
    ```cpp
-   // In Shader class, add:
-   void setUniform3f(const std::string& name, const glm::vec3& vector) {
-       GlCall(glUniform3fv(getUniformLocation(name), 1, &vector[0]));
-   }
-   ```
-
-2. **Create different mesh types**:
-   ```cpp
-   // Add to Mesh class:
-   static Mesh* CreateTriangle();
-   static Mesh* CreateQuad();
-   static Mesh* CreateSphere(int subdivisions);
-   ```
-
-3. **Add renderer state methods**:
-   ```cpp
-   // In Renderer class:
-   void EnableWireframe() const;
-   void SetViewport(int x, int y, int width, int height) const;
-   ```
-
-### Intermediate Challenges:
-1. **Implement shader hot-reloading**:
-   ```cpp
-   class Shader {
-       void ReloadFromFile();  // Re-read and recompile shader file
-       bool CheckFileModified();  // Check if file changed on disk
+   // In testTexture2D, experiment with different UV mappings:
+   float positions[] = {
+       -50.0f, -50.0f, 0.0f, 0.0f,    // Try different UV values
+        50.0f, -50.0f, 2.0f, 0.0f,    // Values > 1.0 show texture wrapping
+        50.0f,  50.0f, 2.0f, 2.0f,    // Experiment with texture repetition
+       -50.0f,  50.0f, 0.0f, 2.0f
    };
    ```
 
-2. **Add mesh transformation support**:
+2. **Add texture filtering controls**:
+   - Add ImGui controls to switch between GL_NEAREST and GL_LINEAR
+   - Experiment with different texture wrapping modes
+   - Try GL_CLAMP_TO_EDGE vs GL_REPEAT
+
+3. **Multiple texture units**:
+   - Load a second texture and bind to texture unit 1
+   - Modify shader to blend between two textures
+   - Add ImGui slider to control blend factor
+
+### Ray Casting Enhancements:
+1. **Add different object types**:
    ```cpp
-   class Mesh {
-       void Transform(const glm::mat4& matrix);  // Apply transformation to vertices
-       void Scale(float factor);
-       void Translate(const glm::vec3& offset);
+   // Extend the Object struct to support different shapes
+   enum ObjectType { SPHERE, BOX, PLANE };
+   struct Object {
+       glm::vec3 position;
+       ObjectType type;
+       union {
+           float radius;        // For spheres
+           glm::vec3 dimensions; // For boxes
+       };
    };
    ```
 
-3. **Create material system**:
+2. **Implement ray-box intersection**:
    ```cpp
-   struct Material {
-       glm::vec3 ambient, diffuse, specular;
-       float shininess;
-       unsigned int diffuseTexture, normalTexture;
-   };
+   bool TestRayCasting::RayIntersectsBox(const glm::vec3& rayOrigin,
+       const glm::vec3& rayDirection, const glm::vec3& boxMin, const glm::vec3& boxMax);
    ```
 
-### Advanced Challenges:
-1. **Implement render batching**:
-   - Group similar objects to reduce draw calls
-   - Sort by shader, then by texture, then by mesh
-   - Use instanced rendering for identical objects
+3. **Add intersection distance calculation**:
+   - Calculate and display the distance to intersection point
+   - Show intersection coordinates in ImGui
+   - Implement closest object selection when multiple intersections occur
 
-2. **Add memory profiling**:
-   - Track OpenGL memory usage
-   - Monitor vertex buffer and texture memory
-   - Implement resource pooling
+### Combined Challenges:
+1. **Textured spheres in ray casting**:
+   - Apply textures to the ray casting spheres
+   - Calculate UV coordinates for sphere surfaces
+   - Show different textures on each object
 
-3. **Create scene graph**:
-   - Hierarchical object relationships
-   - Automatic transformation inheritance
-   - Efficient frustum culling
+2. **3D texture positioning**:
+   - Modify testTexture2D to work in 3D space
+   - Add camera controls similar to ray casting test
+   - Combine 2D texture techniques with 3D perspective
 
 ## Common Issues & Solutions
 
-### "Linker errors with new classes"
-**Build Configuration Problems:**
-- **Missing source files**: Ensure all .cpp files are in Visual Studio project
-- **Include path issues**: Check header file paths and dependencies
-- **Circular includes**: Use forward declarations in headers
-- **Static library linking**: Verify OpenGL libraries are linked correctly
+### "Texture not displaying correctly"
+**Texture Loading Problems:**
+- **File path issues**: Ensure texture files exist in res/Textures/ directory
+- **Image format**: Verify PNG files are properly formatted
+- **UV coordinate problems**: Check vertex data includes correct texture coordinates
+- **Texture binding**: Ensure texture is bound before rendering
 
-### "Runtime crashes in destructors"
-**Resource Management Issues:**
-- **Double deletion**: Ensure resources aren't deleted multiple times
-- **Use after destruction**: Don't use objects after they're destroyed
-- **OpenGL context**: Ensure OpenGL context exists when destructors run
-- **Exception safety**: Use RAII consistently throughout codebase
+### "Ray casting not detecting intersections"
+**Mathematical Issues:**
+- **Ray direction calculation**: Verify mouse-to-world coordinate conversion
+- **Matrix inversions**: Check that view and projection matrices are valid
+- **Sphere positioning**: Ensure objects are positioned within camera view
+- **Discriminant calculation**: Verify ray-sphere intersection math
 
-### "Performance regression with abstraction"
-**Overhead Concerns:**
-- **Virtual function calls**: Keep hot paths non-virtual where possible
-- **Excessive state changes**: Batch similar rendering operations
-- **Memory allocations**: Pre-allocate containers and reuse objects
-- **Debug vs Release**: Ensure compiler optimizations are enabled
+### "ImGui controls not responsive"
+**GUI Integration Problems:**
+- **Event handling**: Ensure GLFW events are processed before ImGui
+- **Context binding**: Verify ImGui context is current during GUI rendering
+- **Slider ranges**: Check that slider min/max values are appropriate
+- **Variable updates**: Ensure GUI changes affect the actual rendering variables
 
-### "Debugging abstracted OpenGL calls"
-**Error Tracking Issues:**
-- **GlCall macro**: Use consistently for all OpenGL calls
-- **Error context**: Check which specific call failed
-- **State validation**: Verify OpenGL state before operations
-- **Resource tracking**: Monitor resource creation and deletion
+### "Performance issues with 3D rendering"
+**Optimization Concerns:**
+- **Depth testing**: Enable GL_DEPTH_TEST for proper 3D rendering
+- **Vertex buffer size**: Consider the number of vertices in sphere generation
+- **Draw call frequency**: Avoid redundant OpenGL state changes
+- **Matrix calculations**: Cache frequently used transformation matrices
 
 ## What's Next?
 
-In the next branch (`09-test-harness`), we'll:
-- **Implement testing framework** from the main branch architecture
-- **Add unit tests** for our abstracted classes
-- **Create integration tests** for rendering pipeline
-- **Set up automated testing** for graphics code validation
-- **Learn testing patterns** specific to graphics programming
-- **Establish quality assurance** practices for continued development
+Building on this foundation of 2D textures and ray casting, future branches will explore:
+- **Advanced Lighting Models**: Implementing Phong, Blinn-Phong, and PBR shading
+- **3D Texture Mapping**: Cube maps, normal mapping, and displacement mapping
+- **Ray Tracing Extensions**: Reflection, refraction, and global illumination
+- **Performance Optimization**: Frustum culling, level-of-detail, and instanced rendering
+- **Advanced Ray Casting**: Acceleration structures like BVH or octrees
+- **Material Systems**: Complex material properties and multi-pass rendering
 
 ## Resources for Deeper Learning
 
-### Essential Reading:
-- [Effective C++ by Scott Meyers](https://www.amazon.com/Effective-Specific-Improve-Programs-Designs/dp/0321334876)
-- [Clean Code by Robert Martin](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350884)
-- [Game Engine Architecture by Jason Gregory](https://www.gameenginebook.com/)
+### Computer Graphics Fundamentals:
+- [Real-Time Rendering by Möller, Haines & Hoffman](https://www.realtimerendering.com/)
+- [Fundamentals of Computer Graphics by Shirley & Marschner](https://www.amazon.com/Fundamentals-Computer-Graphics-Steve-Marschner/dp/1482229390)
+- [Ray Tracing in One Weekend Series](https://raytracing.github.io/)
 
-### Video Tutorials:
-- [The Cherno C++ Series](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
-- [OpenGL Abstraction Patterns](https://www.youtube.com/results?search_query=opengl+abstraction+patterns)
+### OpenGL and Graphics Programming:
+- [LearnOpenGL](https://learnopengl.com/) - Comprehensive OpenGL tutorial series
+- [OpenGL Programming Guide](https://www.opengl.org/documentation/books/#the_opengl_programming_guide_the_official_guide_to_learning_opengl_version_4_5_with_spir_v)
+- [GPU Gems Series](https://developer.nvidia.com/gpugems/gpugems) - Advanced GPU programming techniques
 
-### Deep Dive Topics:
-- RAII and modern C++ resource management
-- Design patterns in game engine architecture
-- OpenGL debugging and profiling techniques
-- Memory management in graphics applications
-- Component-based entity systems
-- Render graph architecture
+### Mathematical Foundations:
+- [3D Math Primer for Graphics and Game Development](https://gamemath.com/)
+- [Mathematics for 3D Game Programming and Computer Graphics](https://www.amazon.com/Mathematics-Programming-Computer-Graphics-Third/dp/1435458869)
+- [GLM Documentation](https://glm.g-truc.net/) - Learn the mathematical operations used in this project
 
-### Tools for Development:
-- **Visual Studio Debugger**: Step through abstracted object lifetimes
-- **RenderDoc**: Analyze abstracted rendering calls
-- **Application Verifier**: Detect resource leaks and errors
+### Interactive Learning:
+- [Shadertoy](https://www.shadertoy.com/) - Experiment with fragment shaders online
+- [GeoGebra 3D](https://www.geogebra.org/3d) - Visualize 3D mathematical concepts
+- [Ray Casting Visualizations](https://www.cs.cornell.edu/courses/cs4620/2013fa/lectures/03raytracing.pdf)
+
+### Development Tools:
+- **RenderDoc**: Frame capture and analysis for OpenGL debugging
+- **Nsight Graphics**: NVIDIA's graphics debugging and profiling tool
+- **Visual Studio Graphics Diagnostics**: Built-in graphics debugging capabilities
 
 ## Debug Tips
 
-### Checking Object Lifetime:
+### Debugging Texture Issues:
 ```cpp
-// Add logging to constructors/destructors
-Shader::Shader(const std::string& filepath) {
-    std::cout << "Creating shader: " << filepath << std::endl;
-    // ... construction code
+// Check texture loading in testTexture2D constructor
+if (!m_Texture) {
+    std::cout << "Failed to load texture: res/Textures/1.png" << std::endl;
 }
 
-Shader::~Shader() {
-    std::cout << "Destroying shader: " << m_Filepath << std::endl;
-    GlCall(glDeleteProgram(m_RendererID));
+// Verify texture binding
+GLint currentTexture;
+glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
+std::cout << "Current bound texture: " << currentTexture << std::endl;
+```
+
+### Debugging Ray Casting Math:
+```cpp
+// Validate ray direction in TestRayCasting::Update()
+std::cout << "Ray Origin: (" << rayOrigin.x << ", " << rayOrigin.y << ", " << rayOrigin.z << ")" << std::endl;
+std::cout << "Ray Direction: (" << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << ")" << std::endl;
+
+// Check intersection calculations
+float discriminant = b * b - 4 * a * c;
+std::cout << "Discriminant: " << discriminant << " (>0 means intersection)" << std::endl;
+```
+
+### Matrix Validation:
+```cpp
+// Print matrices for debugging transformations
+void PrintMatrix(const glm::mat4& matrix, const std::string& name) {
+    std::cout << name << ":" << std::endl;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            std::cout << matrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 ```
 
-### Validating OpenGL State:
-```cpp
-// Add state validation methods
-void Renderer::ValidateState() const {
-    GLint currentProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    std::cout << "Current shader program: " << currentProgram << std::endl;
-}
-```
-
-### Memory Leak Detection:
-```cpp
-// Track resource creation/deletion
-static int shaderCount = 0;
-
-Shader::Shader(...) {
-    ++shaderCount;
-    std::cout << "Shader count: " << shaderCount << std::endl;
-}
-
-Shader::~Shader() {
-    --shaderCount;
-    std::cout << "Shader count: " << shaderCount << std::endl;
-}
-```
-
-### Common Abstraction Mistakes:
-- Creating objects without proper OpenGL context
-- Forgetting to call Bind() before using objects
-- Not handling OpenGL errors consistently
-- Mixing raw OpenGL calls with abstracted classes
-- Improper resource cleanup ordering
+### Common Issues:
+- **UV coordinates outside [0,1]**: Can cause texture sampling issues
+- **Incorrect matrix multiplication order**: MVP should be Projection * View * Model
+- **Missing depth testing**: Essential for proper 3D rendering in ray casting
+- **ImGui slider ranges**: Ensure min/max values allow meaningful interaction
 
 ---
 
