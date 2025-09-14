@@ -3,6 +3,10 @@
 #include <iostream>                 // For console output
 #include <string>                   // For string handling
 
+#include "glm/glm.hpp"              // GLM math library for vectors and matrices
+#include "glm/gtc/matrix_transform.hpp" // GLM functions for creating transformation matrices
+#include "glm/gtc/type_ptr.hpp"     // GLM functions for converting matrices to arrays
+
 // =================================================================
 // SHADER COMPILATION HELPER FUNCTIONS
 // =================================================================
@@ -187,17 +191,20 @@ int main() {
     // =================================================================
     // STEP 9: Define Shader Sources
     // =================================================================
-    // Vertex Shader: Processes each vertex, handling position and colour
+    // Vertex Shader: Processes each vertex with transformation matrix
     std::string vertexShader =
         "#version 330 core\n"                          // GLSL version
         "layout (location = 0) in vec3 aPos;\n"        // Input: vertex position
         "layout (location = 1) in vec3 aColour;\n"     // Input: vertex colour
         "\n"
+        "uniform mat4 u_MVP;\n"                        // Model-View-Projection matrix uniform
+        "\n"
         "out vec3 vertexColour;\n"                     // Output: colour to fragment shader
         "\n"
         "void main()\n"
         "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"  // Set vertex position
+        "   // Transform vertex position using MVP matrix\n"
+        "   gl_Position = u_MVP * vec4(aPos, 1.0);\n"  // Apply transformations
         "   vertexColour = aColour;\n"                 // Pass colour to fragment shader
         "}\n";
 
@@ -218,14 +225,38 @@ int main() {
     unsigned int shaderProgram = CreateShader(vertexShader, fragmentShader);
 
     // =================================================================
-    // STEP 11: Set Clear Color
+    // STEP 11: Setup Transformation Matrices
+    // =================================================================
+    // Get the uniform location for our MVP matrix in the shader
+    int mvpLocation = glGetUniformLocation(shaderProgram, "u_MVP");
+    if (mvpLocation == -1) {
+        std::cout << "Warning: Could not find u_MVP uniform in shader!" << std::endl;
+    }
+
+    // Create projection matrix (perspective camera)
+    glm::mat4 projection = glm::perspective(
+        glm::radians(45.0f),    // Field of view (45 degrees)
+        960.0f / 540.0f,        // Aspect ratio (width/height)
+        0.1f,                   // Near clipping plane
+        100.0f                  // Far clipping plane
+    );
+
+    // Create view matrix (camera looking at origin from distance)
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(0.0f, 0.0f, 3.0f),   // Camera position
+        glm::vec3(0.0f, 0.0f, 0.0f),   // Look at point (origin)
+        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
+    );
+
+    // =================================================================
+    // STEP 12: Set Clear Color
     // =================================================================
     // Set the color that will be used when clearing the screen
     // RGBA values: (Red, Green, Blue, Alpha) - each from 0.0 to 1.0
     glClearColor(0.2f, 0.3f, 0.8f, 1.0f); // Nice blue background
 
     // =================================================================
-    // STEP 12: Main Render Loop
+    // STEP 13: Main Render Loop with Transformations
     // =================================================================
     // Keep the window open and responsive until the user closes it
     while (!glfwWindowShouldClose(window)) {
@@ -234,28 +265,56 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // =================================================================
-        // DRAW THE INDEXED SQUARE!
+        // CREATE DYNAMIC TRANSFORMATIONS
+        // =================================================================
+
+        // Get current time for animations
+        float currentTime = static_cast<float>(glfwGetTime());
+
+        // Create model matrix with time-based rotation
+        glm::mat4 model = glm::mat4(1.0f);                      // Start with identity matrix
+        model = glm::rotate(model, currentTime, glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate around Z-axis
+
+        // Handle keyboard input for additional transformations
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            model = glm::translate(model, glm::vec3(0.0f, 0.001f, 0.0f));  // Move up
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            model = glm::translate(model, glm::vec3(0.0f, -0.001f, 0.0f)); // Move down
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            model = glm::translate(model, glm::vec3(-0.001f, 0.0f, 0.0f)); // Move left
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            model = glm::translate(model, glm::vec3(0.001f, 0.0f, 0.0f));  // Move right
+        }
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            model = glm::scale(model, glm::vec3(1.001f, 1.001f, 1.0f));    // Scale up
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+            model = glm::scale(model, glm::vec3(0.999f, 0.999f, 1.0f));    // Scale down
+        }
+
+        // Combine all transformation matrices: Projection * View * Model
+        glm::mat4 mvp = projection * view * model;
+
+        // =================================================================
+        // DRAW THE TRANSFORMED SQUARE!
         // =================================================================
 
         // 1. Use our shader program
         glUseProgram(shaderProgram);
 
-        // 2. Bind our VAO (this tells OpenGL how to interpret our vertex data)
+        // 2. Upload the MVP matrix to the shader
+        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+
+        // 3. Bind our VAO (this tells OpenGL how to interpret our vertex data)
         glBindVertexArray(VAO);
 
-        // 3. Draw using indexed rendering!
-        // glDrawElements draws primitives using indices from the bound EBO
-        // GL_TRIANGLES: draw triangles using every 3 indices
-        // 6: number of indices to draw (2 triangles × 3 indices each)
-        // GL_UNSIGNED_INT: type of indices data
-        // 0: offset into the index array
+        // 4. Draw using indexed rendering!
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // Note: The EBO is automatically bound when we bind the VAO,
-        // so glDrawElements knows which indices to use.
-
         // Swap the front and back buffers (double buffering)
-        // This prevents flickering by drawing to a hidden buffer first
         glfwSwapBuffers(window);
 
         // Check for window events (keyboard, mouse, window resize, etc.)
@@ -263,7 +322,7 @@ int main() {
     }
 
     // =================================================================
-    // STEP 13: Cleanup OpenGL Resources
+    // STEP 14: Cleanup OpenGL Resources
     // =================================================================
     // Clean up our OpenGL objects
     glDeleteVertexArrays(1, &VAO);
@@ -272,12 +331,12 @@ int main() {
     glDeleteProgram(shaderProgram);
 
     // =================================================================
-    // STEP 14: Cleanup GLFW
+    // STEP 15: Cleanup GLFW
     // =================================================================
     // Destroy the window and clean up GLFW resources
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    std::cout << "Square rendered successfully using indexed rendering! Window closed." << std::endl;
+    std::cout << "Animated square with transformations rendered successfully! Window closed." << std::endl;
     return 0;
 }
