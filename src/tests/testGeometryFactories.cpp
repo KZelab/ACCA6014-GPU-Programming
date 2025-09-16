@@ -124,9 +124,9 @@ namespace test
         ImGui::Separator();
 
         // Geometry selection
-        const char* geometryTypes[] = { "Triangle", "Quad", "Cube", "Sphere", "Fullscreen Quad" };
+        const char* geometryTypes[] = { "Triangle", "Quad", "Cube", "Sphere", "Fullscreen Quad", "Cylinder", "Plane" };
         int currentItem = static_cast<int>(m_CurrentGeometry);
-        if (ImGui::Combo("Geometry Type", &currentItem, geometryTypes, 5)) {
+        if (ImGui::Combo("Geometry Type", &currentItem, geometryTypes, 7)) {
             SwitchGeometry(static_cast<GeometryType>(currentItem));
         }
 
@@ -183,6 +183,16 @@ namespace test
                 ImGui::BulletText("Used for post-processing effects");
                 ImGui::BulletText("No transformation needed");
                 break;
+            case CYLINDER:
+                ImGui::BulletText("Parametric cylinder generation");
+                ImGui::BulletText("Demonstrates advanced UV mapping");
+                ImGui::BulletText("Radial normal calculations");
+                break;
+            case PLANE:
+                ImGui::BulletText("Tessellated plane with subdivisions");
+                ImGui::BulletText("Shows tessellation concepts");
+                ImGui::BulletText("Demonstrates mesh density control");
+                break;
         }
     }
 
@@ -218,6 +228,12 @@ namespace test
                 break;
             case FULLSCREEN_QUAD:
                 m_CurrentMesh = GeometryFactory::CreateFullscreenQuad();
+                break;
+            case CYLINDER:
+                m_CurrentMesh = GeometryFactory::CreateCylinder(20, 1, 1.0f, 0.5f);
+                break;
+            case PLANE:
+                m_CurrentMesh = GeometryFactory::CreatePlane(10, 10, 2.0f, 2.0f);
                 break;
         }
     }

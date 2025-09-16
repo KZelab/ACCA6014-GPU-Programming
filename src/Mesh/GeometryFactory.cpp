@@ -31,6 +31,18 @@ Mesh* GeometryFactory::CreateFullscreenQuad() {
     return new Mesh(vertices, indices);
 }
 
+Mesh* GeometryFactory::CreateCylinder(int sectors, int stacks, float height, float radius) {
+    std::vector<Vertex> vertices = GenerateCylinderVertices(sectors, stacks, height, radius);
+    std::vector<unsigned int> indices = GenerateCylinderIndices(sectors, stacks);
+    return new Mesh(vertices, indices);
+}
+
+Mesh* GeometryFactory::CreatePlane(int subdivisionsX, int subdivisionsY, float width, float height) {
+    std::vector<Vertex> vertices = GeneratePlaneVertices(subdivisionsX, subdivisionsY, width, height);
+    std::vector<unsigned int> indices = GeneratePlaneIndices(subdivisionsX, subdivisionsY);
+    return new Mesh(vertices, indices);
+}
+
 std::vector<Vertex> GeometryFactory::GenerateTriangleVertices() {
     std::vector<Vertex> vertices = {
         Vertex( 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  0.5f, 1.0f),  // Top vertex - Red
@@ -258,4 +270,125 @@ void GeometryFactory::CalculateNormals(std::vector<Vertex>& vertices, const std:
             vertex.normal[2] /= length;
         }
     }
+}
+
+std::vector<Vertex> GeometryFactory::GenerateCylinderVertices(int sectors, int stacks, float height, float radius) {
+    std::vector<Vertex> vertices;
+    const float PI = 3.14159265359f;
+
+    // Generate vertices for the cylinder body
+    for (int stack = 0; stack <= stacks; ++stack) {
+        float y = height * (float(stack) / stacks) - height * 0.5f; // Center cylinder vertically
+
+        for (int sector = 0; sector <= sectors; ++sector) {
+            float theta = 2.0f * PI * (float(sector) / sectors);
+            float x = radius * cos(theta);
+            float z = radius * sin(theta);
+
+            // Normal (pointing outward from cylinder axis)
+            float normX = cos(theta);
+            float normY = 0.0f;
+            float normZ = sin(theta);
+
+            // Texture coordinates
+            float u = float(sector) / sectors;
+            float v = float(stack) / stacks;
+
+            // Colour based on height and angle
+            float r = 0.5f + 0.5f * sin(theta);
+            float g = 0.5f + 0.5f * (y / height + 0.5f);
+            float b = 0.5f + 0.5f * cos(theta);
+
+            vertices.emplace_back(x, y, z, normX, normY, normZ, r, g, b, u, v);
+        }
+    }
+
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GenerateCylinderIndices(int sectors, int stacks) {
+    std::vector<unsigned int> indices;
+
+    // Generate indices for cylinder body
+    for (int stack = 0; stack < stacks; ++stack) {
+        int k1 = stack * (sectors + 1);
+        int k2 = k1 + sectors + 1;
+
+        for (int sector = 0; sector < sectors; ++sector, ++k1, ++k2) {
+            // Two triangles per quad
+            indices.push_back(k1);
+            indices.push_back(k2);
+            indices.push_back(k1 + 1);
+
+            indices.push_back(k1 + 1);
+            indices.push_back(k2);
+            indices.push_back(k2 + 1);
+        }
+    }
+
+    return indices;
+}
+
+std::vector<Vertex> GeometryFactory::GeneratePlaneVertices(int subdivisionsX, int subdivisionsY, float width, float height) {
+    std::vector<Vertex> vertices;
+
+    // Calculate number of vertices
+    int verticesX = subdivisionsX + 1;
+    int verticesY = subdivisionsY + 1;
+
+    // Generate vertices with subdivision
+    for (int y = 0; y < verticesY; ++y) {
+        for (int x = 0; x < verticesX; ++x) {
+            // Calculate position
+            float posX = (float(x) / subdivisionsX - 0.5f) * width;
+            float posY = 0.0f; // Plane lies in XZ plane
+            float posZ = (float(y) / subdivisionsY - 0.5f) * height;
+
+            // Normal pointing up
+            float normX = 0.0f;
+            float normY = 1.0f;
+            float normZ = 0.0f;
+
+            // UV coordinates
+            float u = float(x) / subdivisionsX;
+            float v = float(y) / subdivisionsY;
+
+            // Colour based on position for visual distinction
+            float r = 0.5f + 0.5f * (posX / width + 0.5f);
+            float g = 0.7f;
+            float b = 0.5f + 0.5f * (posZ / height + 0.5f);
+
+            vertices.emplace_back(posX, posY, posZ, normX, normY, normZ, r, g, b, u, v);
+        }
+    }
+
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GeneratePlaneIndices(int subdivisionsX, int subdivisionsY) {
+    std::vector<unsigned int> indices;
+    int verticesX = subdivisionsX + 1;
+
+    // Generate indices for tessellated plane
+    for (int y = 0; y < subdivisionsY; ++y) {
+        for (int x = 0; x < subdivisionsX; ++x) {
+            // Calculate indices for current quad
+            int topLeft = y * verticesX + x;
+            int topRight = topLeft + 1;
+            int bottomLeft = (y + 1) * verticesX + x;
+            int bottomRight = bottomLeft + 1;
+
+            // First triangle (top-left, bottom-left, top-right)
+            indices.push_back(topLeft);
+            indices.push_back(bottomLeft);
+            indices.push_back(topRight);
+
+            // Second triangle (top-right, bottom-left, bottom-right)
+            indices.push_back(topRight);
+            indices.push_back(bottomLeft);
+            indices.push_back(bottomRight);
+        }
+    }
+
+    return indices;
 }

@@ -42,6 +42,9 @@ cmake_install.cmake
 .claude/settings.local.json
 .claude/
 
+# Development roadmap (local only)
+BRANCH_ROADMAP.md
+
 # Windows specific
 Thumbs.db
 Desktop.ini

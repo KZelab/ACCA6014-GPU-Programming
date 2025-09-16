@@ -23,7 +23,9 @@ namespace test
             QUAD = 1,
             CUBE = 2,
             SPHERE = 3,
-            FULLSCREEN_QUAD = 4
+            FULLSCREEN_QUAD = 4,
+            CYLINDER = 5,
+            PLANE = 6
         };
 
         Mesh* m_CurrentMesh;
