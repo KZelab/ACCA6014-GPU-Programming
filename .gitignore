@@ -49,3 +49,7 @@ Desktop.ini
 # Backup files
 *.backup.*
 *~
+
+# Temporary/unwanted files
+New Text Document.txt
+*.txt.tmp
