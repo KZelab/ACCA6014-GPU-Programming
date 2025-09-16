@@ -1,46 +1,55 @@
-# Branch: 10-textures-and-raycasting
+# Branch: 11-basic-geometry-factories
 
 ## Learning Objective
-Master 2D texture mapping, sampling techniques, and fundamental ray casting algorithms through interactive demonstrations. This branch builds upon the test harness foundation to explore advanced graphics programming concepts including texture operations, UV coordinate systems, and geometric intersection calculations.
+Master fundamental geometry generation, vertex data management, and index buffer optimization through systematic primitive creation. This branch focuses on building reusable geometry factory systems that form the foundation for all 3D graphics primitives, emphasizing clean code organization and efficient memory management.
 
 ## What You'll Build
-An interactive test suite with three focused demonstrations: basic framebuffer clearing, comprehensive 2D texture operations, and ray casting techniques. Each test provides real-time parameter adjustment and visual feedback to understand the underlying graphics programming concepts.
+An interactive geometry factory system with comprehensive primitive generation capabilities. The system includes triangle, quad, cube, sphere, and fullscreen quad factory methods with organized vertex data management, normal calculation, index buffer optimization, and an interactive test suite for real-time geometry visualization with basic lighting.
 
-![Expected Result](docs/images/10-textures-and-raycasting.png)
-*A 960x540 window with an ImGui interface demonstrating texture mapping and ray casting concepts*
+![Expected Result](docs/images/11-basic-geometry-factories.png)
+*A 960x540 window with an ImGui interface demonstrating primitive geometry generation and rendering*
 
 ## Key Concepts
 
 ### Core Concepts Learned:
-- **2D Texture Mapping**: Understanding UV coordinate systems and texture sampling
-- **Texture Operations**: Loading, binding, and manipulating texture data
-- **Texture Filtering**: Linear vs nearest neighbour sampling techniques
-- **Texture Wrapping**: Repeat, clamp, and mirror wrapping modes
-- **Ray Casting Fundamentals**: Ray-object intersection algorithms
-- **Geometric Calculations**: Vector mathematics for 3D graphics
-- **Interactive Parameter Testing**: Real-time adjustment of graphics parameters
-- **Visual Debugging**: Using colour coding and visual feedback for algorithm validation
+- **Geometry Factory Pattern**: Systematic approach to primitive generation
+- **Vertex Data Management**: Organised handling of position, normals, colour, and UV data
+- **Normal Calculation**: Proper surface normal generation for lighting
+- **Index Buffer Optimisation**: Efficient vertex reuse through indexed rendering
+- **Parametric Surface Generation**: Mathematical construction of spheres using spherical coordinates
+- **Primitive Generation**: Mathematical construction of basic and advanced 3D shapes
+- **Memory Layout**: Structured vertex attribute organisation with normals
+- **Reusable Patterns**: Building blocks for complex geometry systems
+- **Interactive Visualisation**: Real-time geometry parameter adjustment with lighting
+- **Code Organisation**: Clean separation of geometry logic from rendering
 
 ### Test Demonstrations:
 - **testClearColour**: Fundamental framebuffer clearing and colour management
-- **testTexture2D**: Comprehensive 2D texture operations and sampling techniques
-- **testRayCasting**: Ray-sphere and ray-plane intersection algorithms
+- **testGeometryFactories**: Interactive primitive generation and rendering with lighting
+- **Previous Tests**: testTexture2D and testRayCasting from branch 10
 
 ### Technical Features:
-- **Texture Loading**: Dynamic texture creation and GPU upload
-- **UV Coordinate Manipulation**: Real-time UV coordinate transformation
-- **Ray Generation**: Mouse-based ray casting from camera position
-- **Intersection Visualisation**: Real-time feedback for ray-object intersections
-- **Parameter Controls**: Interactive sliders for texture and ray casting parameters
+- **Triangle Factory**: Basic 3-vertex primitive with colour gradients
+- **Quad Factory**: Optimised 4-vertex primitive using index buffers
+- **Cube Factory**: Complex 8-vertex primitive with 12 triangles and proper face normals
+- **Sphere Factory**: Parametric surface generation with configurable subdivision
+- **Fullscreen Quad Factory**: NDC coordinates for post-processing effects
+- **Vertex Management**: Structured Vertex class with position, normals, colour, and UV data
+- **Index Optimisation**: Shared vertices to reduce memory usage
+- **Interactive Controls**: Real-time geometry switching and parameter adjustment
+- **Educational Interface**: Detailed information about each primitive type
+- **Basic Lighting**: Directional lighting using vertex normals
 
 ## Code Architecture
 
 ### File Structure
 ```
 src/
-├── CMakeHelloWorld.cpp       # Test harness application with focused demonstrations
+├── CMakeHelloWorld.cpp       # Test harness application with geometry demos
+├── Mesh/
+│   ├── Mesh.h/.cpp          # Enhanced mesh class for geometry rendering
+│   └── GeometryFactory.h/.cpp # Static factory methods for primitive generation
 ├── Shader.h/.cpp             # Shader compilation and uniform management
-├── Mesh.h/.cpp               # Vertex data and geometry abstraction
 ├── Renderer.h/.cpp           # High-level rendering commands
 ├── VertexArray.h/.cpp        # VAO wrapper
 ├── VertexBuffer.h/.cpp       # VBO wrapper
@@ -49,8 +58,9 @@ src/
 ├── tests/
 │   ├── Tests.h/.cpp          # Base test framework classes
 │   ├── testClearColour.h/.cpp # Basic framebuffer clearing demonstration
-│   ├── testTexture2D.h/.cpp  # 2D texture mapping and sampling techniques
-│   └── testRayCasting.h/.cpp # Ray casting algorithms and intersection testing
+│   ├── testGeometryFactories.h/.cpp # Primitive generation and rendering
+│   ├── testTexture2D.h/.cpp  # 2D texture mapping (from branch 10)
+│   └── testRayCasting.h/.cpp # Ray casting algorithms (from branch 10)
 └── vendor/
     └── imgui/                # Dear ImGui library for interactive GUI
 
@@ -62,353 +72,598 @@ Dependencies:
 └── Dear ImGui               # Interactive parameter controls
 ```
 
-### Test Demonstrations Overview
+### Geometry Factory System
 
-**testClearColour - Fundamental Concepts:**
-- Basic framebuffer clearing operations
-- Colour buffer, depth buffer, and stencil buffer management
-- Interactive colour selection and animation
-- OpenGL clear operations and state management
+**GeometryFactory Class - Static Factory Methods:**
+```cpp
+class GeometryFactory {
+public:
+    // Primary factory methods
+    static Mesh* CreateTriangle();                    // 3 vertices, 1 triangle
+    static Mesh* CreateQuad();                        // 4 vertices, 2 triangles
+    static Mesh* CreateCube();                        // 8 vertices, 12 triangles
+    static Mesh* CreateSphere(int sectors = 20, int stacks = 20);  // Parametric sphere
+    static Mesh* CreateFullscreenQuad();              // NDC coordinates for post-processing
 
-**testTexture2D - Texture Mapping:**
-- 2D texture creation and GPU upload
-- UV coordinate systems and texture sampling
-- Texture filtering modes (nearest, linear)
-- Texture wrapping modes (repeat, clamp, mirror)
-- Real-time texture parameter adjustment
-- Procedural texture generation and manipulation
+    // Vertex data generation
+    static std::vector<Vertex> GenerateTriangleVertices();
+    static std::vector<Vertex> GenerateQuadVertices();
+    static std::vector<Vertex> GenerateCubeVertices();
+    static std::vector<Vertex> GenerateSphereVertices(int sectors = 20, int stacks = 20);
+    static std::vector<Vertex> GenerateFullscreenQuadVertices();
 
-**testRayCasting - Geometric Algorithms:**
-- Ray generation from camera/mouse position
-- Ray-sphere intersection calculations
-- Ray-plane intersection algorithms
-- Vector mathematics for 3D graphics
-- Real-time intersection visualisation
-- Interactive geometry parameter adjustment
+    // Index buffer generation
+    static std::vector<unsigned int> GenerateTriangleIndices();
+    static std::vector<unsigned int> GenerateQuadIndices();
+    static std::vector<unsigned int> GenerateCubeIndices();
+    static std::vector<unsigned int> GenerateSphereIndices(int sectors = 20, int stacks = 20);
+    static std::vector<unsigned int> GenerateFullscreenQuadIndices();
+
+private:
+    // Utility methods
+    static void AssignUVCoordinates(std::vector<Vertex>& vertices, int faceVertexCount);
+    static void AssignColours(std::vector<Vertex>& vertices);
+    static void CalculateNormals(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
+};
+```
+
+**Enhanced Vertex Structure:**
+```cpp
+struct Vertex {
+    float position[3];   // 3D position coordinates
+    float normal[3];     // Surface normal for lighting calculations
+    float colour[3];     // RGB colour values
+    float texCoords[2];  // UV texture coordinates
+
+    Vertex(float px, float py, float pz, float nx, float ny, float nz, float r, float g, float b, float u, float v)
+        : position{px, py, pz}, normal{nx, ny, nz}, colour{r, g, b}, texCoords{u, v} {}
+
+    // Convenience constructor for backward compatibility (assumes normal pointing up)
+    Vertex(float px, float py, float pz, float r, float g, float b, float u, float v)
+        : position{px, py, pz}, normal{0.0f, 0.0f, 1.0f}, colour{r, g, b}, texCoords{u, v} {}
+};
+```
 
 ### Educational Progression
 
 **Learning Path:**
-1. **Clear Operations** → Understanding fundamental GPU operations
-2. **Texture Mapping** → 2D graphics and UV coordinate systems
-3. **Ray Casting** → 3D mathematics and geometric calculations
+1. **Triangle Generation** → Understanding basic vertex data and primitive assembly
+2. **Quad Generation** → Introduction to index buffers and vertex reuse
+3. **Cube Generation** → Complex 3D geometry construction and face organisation
+4. **Sphere Generation** → Parametric surface mathematics and subdivision
+5. **Fullscreen Quad** → NDC coordinates and post-processing foundations
 
 **Interactive Features:**
-- Real-time parameter sliders for immediate visual feedback
-- Colour pickers for intuitive colour selection
-- Mouse interaction for ray casting demonstrations
-- Educational descriptions explaining each concept
-
-## What's Different from Previous Branch (09-test-harness)
-
-### New Additions:
-- **testTexture2D**: Comprehensive 2D texture mapping and sampling demonstration
-- **testRayCasting**: Interactive ray casting algorithms and intersection testing
-- **Advanced Graphics Concepts**: Moving beyond basic rendering to computational graphics
-- **Mathematical Visualisation**: Real-time display of geometric calculations
-- **Interactive Algorithm Testing**: Parameter adjustment for texture and ray casting operations
-- **Educational Progression**: Building from fundamental concepts to advanced techniques
-
-### What Stayed the Same:
-- Essential test framework architecture (Tests.h/cpp)
-- testClearColour as foundational demonstration
-- ImGui integration for interactive parameter control
-- Real-time visual feedback and educational interface
-- Clean project structure and modular design
+- Real-time geometry type switching (Triangle/Quad/Cube/Sphere/Fullscreen Quad)
+- Wireframe/solid rendering toggle
+- Rotation speed and scale adjustment
+- Educational information display for each primitive
+- Index count and vertex statistics
+- Basic directional lighting using vertex normals
 
 ## Understanding the Code
 
-### testClearColour Implementation
+### Triangle Factory Implementation
 
-**Core Functionality:**
+**Core Triangle Generation:**
 ```cpp
-// Basic framebuffer clearing with different buffer types
-void testClearColour::Render() {
-    if (m_ClearDepth && m_ClearStencil) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    } else if (m_ClearDepth) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    } else {
-        glClear(GL_COLOR_BUFFER_BIT);
+std::vector<Vertex> GeometryFactory::GenerateTriangleVertices() {
+    std::vector<Vertex> vertices = {
+        // Position          Normal           Colour          UV
+        Vertex( 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f,  0.5f, 1.0f),  // Top - Red
+        Vertex(-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f),  // Bottom-left - Green
+        Vertex( 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f)   // Bottom-right - Blue
+    };
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GenerateTriangleIndices() {
+    return { 0, 1, 2 };  // Simple sequential indexing
+}
+```
+
+**Key Learning Points:**
+- **Simplest primitive**: Foundation for all 3D graphics
+- **Sequential indexing**: No vertex sharing required
+- **Colour gradients**: Each vertex has unique colour for visual distinction
+- **Normal vectors**: All pointing in +Z direction for consistent lighting
+- **UV mapping**: Proper texture coordinate assignment
+
+### Quad Factory Implementation
+
+**Optimized Quad with Index Buffer:**
+```cpp
+std::vector<Vertex> GeometryFactory::GenerateQuadVertices() {
+    std::vector<Vertex> vertices = {
+        Vertex(-0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f),  // Bottom-left - Red
+        Vertex( 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f),  // Bottom-right - Green
+        Vertex( 0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f),  // Top-right - Blue
+        Vertex(-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f)   // Top-left - Yellow
+    };
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GenerateQuadIndices() {
+    return { 0, 1, 2, 2, 3, 0 };  // Two triangles sharing vertices
+}
+```
+
+**Key Learning Points:**
+- **Vertex reuse**: 4 vertices create 2 triangles (6 indices)
+- **Index optimization**: Demonstrates shared vertex efficiency
+- **Triangle strips**: Understanding how quads decompose to triangles
+- **Memory efficiency**: Reduced vertex data through intelligent indexing
+
+### Cube Factory Implementation
+
+**Complex 3D Primitive Construction:**
+```cpp
+std::vector<Vertex> GeometryFactory::GenerateCubeVertices() {
+    std::vector<Vertex> vertices = {
+        // Front face (Z = +0.5)
+        Vertex(-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f),  // Front-bottom-left
+        Vertex( 0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f),  // Front-bottom-right
+        Vertex( 0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f),  // Front-top-right
+        Vertex(-0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f),  // Front-top-left
+
+        // Back face (Z = -0.5) - Similar pattern with different Z coordinates
+        // ... 4 more vertices for the back face
+    };
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GenerateCubeIndices() {
+    return {
+        // Front face (2 triangles)
+        0, 1, 2,  2, 3, 0,
+        // Back face (2 triangles)
+        4, 5, 6,  6, 7, 4,
+        // Left face (2 triangles)
+        7, 3, 0,  0, 4, 7,
+        // Right face (2 triangles)
+        1, 5, 6,  6, 2, 1,
+        // Bottom face (2 triangles)
+        4, 0, 1,  1, 5, 4,
+        // Top face (2 triangles)
+        3, 7, 6,  6, 2, 3
+    };
+}
+```
+
+**Key Learning Points:**
+- **3D geometry construction**: Systematic approach to complex primitives
+- **Face organisation**: Each cube face is composed of 2 triangles
+- **Vertex sharing**: 8 vertices create 12 triangles (36 indices)
+- **Coordinate systems**: Understanding 3D position mapping
+- **Index management**: Complex indexing patterns for face construction
+
+### Sphere Factory Implementation
+
+**Parametric Surface Generation:**
+```cpp
+std::vector<Vertex> GeometryFactory::GenerateSphereVertices(int sectors, int stacks) {
+    std::vector<Vertex> vertices;
+    float radius = 0.5f;
+    const float PI = 3.14159265359f;
+
+    for (int stack = 0; stack <= stacks; ++stack) {
+        float phi = PI * (float(stack) / stacks); // from 0 to π
+        float y = cos(phi);
+        float sinPhi = sin(phi);
+
+        for (int sector = 0; sector <= sectors; ++sector) {
+            float theta = 2.0f * PI * (float(sector) / sectors); // from 0 to 2π
+            float x = sinPhi * cos(theta);
+            float z = sinPhi * sin(theta);
+
+            // Position
+            float posX = radius * x;
+            float posY = radius * y;
+            float posZ = radius * z;
+
+            // Normal (for unit sphere, normal = normalised position)
+            float normX = x, normY = y, normZ = z;
+
+            // Colour based on position for visual variety
+            float r = (x + 1.0f) * 0.5f;
+            float g = (y + 1.0f) * 0.5f;
+            float b = (z + 1.0f) * 0.5f;
+
+            // UV coordinates
+            float u = float(sector) / sectors;
+            float v = float(stack) / stacks;
+
+            vertices.emplace_back(posX, posY, posZ, normX, normY, normZ, r, g, b, u, v);
+        }
+    }
+    return vertices;
+}
+```
+
+**Key Learning Points:**
+- **Parametric equations**: Mathematical sphere generation using spherical coordinates
+- **Perfect normals**: Each vertex normal points outward from sphere center
+- **UV mapping**: Proper texture coordinate calculation for spherical surfaces
+- **Subdivision control**: sectors/stacks parameters control mesh resolution
+- **Colour variation**: Position-based colouring for visual surface understanding
+
+### Fullscreen Quad Factory Implementation
+
+**NDC Coordinate Generation:**
+```cpp
+std::vector<Vertex> GeometryFactory::GenerateFullscreenQuadVertices() {
+    std::vector<Vertex> vertices = {
+        // NDC coordinates for fullscreen rendering
+        Vertex(-1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 0.0f),  // Bottom-left
+        Vertex( 1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f),  // Bottom-right
+        Vertex(-1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  0.0f, 1.0f),  // Top-left
+        Vertex( 1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,  1.0f, 1.0f)   // Top-right
+    };
+    return vertices;
+}
+
+std::vector<unsigned int> GeometryFactory::GenerateFullscreenQuadIndices() {
+    return { 0, 1, 2, 1, 3, 2 };
+}
+```
+
+**Key Learning Points:**
+- **NDC coordinates**: Range from -1 to 1 covers entire screen space
+- **Post-processing foundation**: Essential for effects like blur, bloom, tone mapping
+- **No transformation needed**: Bypasses MVP matrix calculations
+- **Perfect UV mapping**: 0-1 range matches framebuffer coordinates
+- **Efficient rendering**: Minimal vertex count for maximum screen coverage
+
+### Interactive Test Implementation
+
+**Real-time Geometry Switching:**
+```cpp
+void testGeometryFactories::UpdateMesh() {
+    if (m_CurrentMesh) {
+        delete m_CurrentMesh;
+        m_CurrentMesh = nullptr;
+    }
+
+    switch (m_CurrentGeometry) {
+        case TRIANGLE:
+            m_CurrentMesh = GeometryFactory::CreateTriangle();
+            break;
+        case QUAD:
+            m_CurrentMesh = GeometryFactory::CreateQuad();
+            break;
+        case CUBE:
+            m_CurrentMesh = GeometryFactory::CreateCube();
+            break;
+        case SPHERE:
+            m_CurrentMesh = GeometryFactory::CreateSphere(20, 20);
+            break;
+        case FULLSCREEN_QUAD:
+            m_CurrentMesh = GeometryFactory::CreateFullscreenQuad();
+            break;
     }
 }
 ```
 
-**Interactive Features:**
-- Colour presets for quick testing
-- Animated colour transitions
-- Buffer clearing options (colour, depth, stencil)
-- Real-time colour parameter adjustment
-
-### testTexture2D Implementation
-
-**Core Texture Operations:**
+**Educational GUI Features:**
 ```cpp
-// Texture loading and binding in constructor
-m_Texture = std::make_unique<Texture>(R"(res/Textures/1.png)");
-m_Texture->Bind(); // Activate texture unit 0
-m_Shader->setUniform1i("u_Texture", 0); // Link shader uniform to texture unit 0
+void testGeometryFactories::RenderGUI() {
+    // Geometry type selection
+    const char* geometryTypes[] = { "Triangle", "Quad", "Cube", "Sphere", "Fullscreen Quad" };
+    if (ImGui::Combo("Geometry Type", &currentItem, geometryTypes, 5)) {
+        SwitchGeometry(static_cast<GeometryType>(currentItem));
+    }
 
-// Vertex data with UV coordinates
-float positions[] = {
-   -50.0f, -50.0f, 0.0f, 0.0f, // Bottom-left with UV (0,0)
-    50.0f, -50.0f, 1.0f, 0.0f, // Bottom-right with UV (1,0)
-    50.0f,  50.0f, 1.0f, 1.0f, // Top-right with UV (1,1)
-   -50.0f,  50.0f, 0.0f, 1.0f  // Top-left with UV (0,1)
-};
-```
+    // Rendering controls
+    ImGui::Checkbox("Wireframe", &m_ShowWireframe);
+    ImGui::SliderFloat("Rotation Speed", &m_RotationSpeed, 0.0f, 200.0f);
+    ImGui::SliderFloat("Scale", &m_Scale, 0.1f, 3.0f);
 
-**Interactive Features:**
-- Real-time translation of textured quads using ImGui sliders
-- Multiple textured objects rendered simultaneously
-- UV coordinate mapping from 2D texture to geometry
-- Orthographic projection for clear 2D visualization
+    // Educational information
+    ImGui::Text("Index Count: %u", m_CurrentMesh->GetIndexCount());
 
-### testRayCasting Implementation
-
-**Ray Generation and Mathematics:**
-```cpp
-// Calculate ray direction from mouse position
-glm::vec3 TestRayCasting::CalculateRayDirection(float mouseX, float mouseY) {
-    // Convert mouse position to NDC
-    float x = (2.0f * mouseX) / width - 1.0f;
-    float y = 1.0f - (2.0f * mouseY) / height; // Invert Y-axis
-
-    glm::vec4 rayClip(x, y, -1.0f, 1.0f);
-    glm::vec4 rayEye = glm::inverse(projectionMatrix) * rayClip;
-    rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
-    glm::vec3 rayWorld = glm::vec3(glm::inverse(viewMatrix) * rayEye);
-    return glm::normalize(rayWorld);
-}
-
-// Ray-sphere intersection test
-bool TestRayCasting::RayIntersectsSphere(const glm::vec3& rayOrigin,
-    const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius) {
-    glm::vec3 oc = rayOrigin - sphereCenter;
-    float a = glm::dot(rayDirection, rayDirection);
-    float b = 2.0f * glm::dot(oc, rayDirection);
-    float c = glm::dot(oc, oc) - sphereRadius * sphereRadius;
-    float discriminant = b * b - 4 * a * c;
-    return discriminant > 0; // Intersection if discriminant > 0
+    switch (m_CurrentGeometry) {
+        case TRIANGLE:
+            ImGui::BulletText("3 vertices, 1 triangle (3 indices)");
+            ImGui::BulletText("Fundamental primitive in 3D graphics");
+            break;
+        case QUAD:
+            ImGui::BulletText("4 vertices, 2 triangles (6 indices)");
+            ImGui::BulletText("Demonstrates index buffer optimisation");
+            break;
+        case CUBE:
+            ImGui::BulletText("8 vertices, 12 triangles (36 indices)");
+            ImGui::BulletText("Shows 3D geometry construction");
+            break;
+        case SPHERE:
+            ImGui::BulletText("Parametric surface generation");
+            ImGui::BulletText("Perfect normals for lighting calculations");
+            break;
+        case FULLSCREEN_QUAD:
+            ImGui::BulletText("NDC coordinates (-1 to 1)");
+            ImGui::BulletText("Used for post-processing effects");
+            break;
+    }
 }
 ```
 
-**3D Interactive Features:**
-- WASD camera movement through 3D space
-- Mouse-based ray casting from camera position
-- Real-time sphere intersection detection and highlighting
-- 3D sphere generation with parametric equations
-- Visual feedback through colour changes (green for selected, red for unselected)
+## What's Different from Previous Branch (10-textures-and-raycasting)
 
-## Implementation Details
+### New Additions:
+- **Enhanced GeometryFactory System**: Comprehensive primitive generation with static factory methods
+- **Sphere Generation**: Parametric surface mathematics using spherical coordinates
+- **Fullscreen Quad**: NDC coordinate generation for post-processing foundations
+- **Organised Mesh Structure**: Enhanced Mesh class moved to dedicated Mesh/ folder
+- **Normal Vector Support**: Full lighting-ready vertex structure with surface normals
+- **testGeometryFactories**: Interactive primitive generation and visualisation with basic lighting
+- **Vertex Data Management**: Structured approach to vertex attribute organisation including normals
+- **Index Buffer Optimisation**: Demonstration of efficient vertex reuse techniques
+- **Educational Progression**: Building from simple triangles to advanced parametric surfaces
+- **Code Organisation**: Clean separation of geometry logic from rendering systems
 
-### Texture Class Integration
-Both testTexture2D and testRayCasting rely on the existing graphics abstraction classes:
+### What Stayed the Same:
+- Essential test framework architecture (Tests.h/cpp)
+- All previous tests (testClearColour, testTexture2D, testRayCasting)
+- ImGui integration for interactive parameter control
+- Real-time visual feedback and educational interface
+- Core rendering systems (Shader, Renderer, VertexArray, etc.)
 
-**Texture Loading:**
-```cpp
-// In testTexture2D constructor
-m_Texture = std::make_unique<Texture>(R"(res/Textures/1.png)");
-m_Texture->Bind();
-m_Shader->setUniform1i("u_Texture", 0);
-```
-
-**Vertex Array Setup:**
-```cpp
-// Common pattern used in both tests
-m_VAO = std::make_unique<VertexArray>();
-m_VBO = std::make_unique<VertexBuffer>(vertices.data(), vertexSize);
-VertexBufferLayout layout;
-layout.Push<float>(3); // Position attributes
-m_VAO->AddBuffer(*m_VBO, layout);
-```
-
-### Shader Integration
-Both tests use the existing Shader class for uniform management:
-
-```cpp
-// 2D texture test uses orthographic projection
-m_Proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.f, -1.0f, 1.0f);
-shader.setUniformMat4f("u_MVP", m_Proj * m_View * model);
-
-// 3D ray casting test uses perspective projection
-projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-shader.setUniformMat4f("projection", projectionMatrix);
-```
+### Enhanced Features:
+- **Improved Mesh Class**: Better integration with factory-generated geometry
+- **Structured Vertex Class**: Comprehensive vertex attribute management
+- **Memory Optimization**: Index buffers for efficient vertex usage
+- **Interactive Controls**: Real-time geometry switching and parameter adjustment
 
 ## Learning Experiments
 
-### Texture Mapping Challenges:
-1. **Modify UV coordinates**:
+### Basic Geometry Modifications:
+1. **Triangle Variations**:
    ```cpp
-   // In testTexture2D, experiment with different UV mappings:
-   float positions[] = {
-       -50.0f, -50.0f, 0.0f, 0.0f,    // Try different UV values
-        50.0f, -50.0f, 2.0f, 0.0f,    // Values > 1.0 show texture wrapping
-        50.0f,  50.0f, 2.0f, 2.0f,    // Experiment with texture repetition
-       -50.0f,  50.0f, 0.0f, 2.0f
+   // Experiment with different triangle shapes
+   std::vector<Vertex> vertices = {
+       Vertex( 0.0f,  0.8f, 0.0f,  1.0f, 0.0f, 0.0f,  0.5f, 1.0f),  // Taller triangle
+       Vertex(-0.8f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f),  // Wider base
+       Vertex( 0.8f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f)
    };
    ```
 
-2. **Add texture filtering controls**:
-   - Add ImGui controls to switch between GL_NEAREST and GL_LINEAR
-   - Experiment with different texture wrapping modes
-   - Try GL_CLAMP_TO_EDGE vs GL_REPEAT
-
-3. **Multiple texture units**:
-   - Load a second texture and bind to texture unit 1
-   - Modify shader to blend between two textures
-   - Add ImGui slider to control blend factor
-
-### Ray Casting Enhancements:
-1. **Add different object types**:
+2. **Quad Tessellation**:
    ```cpp
-   // Extend the Object struct to support different shapes
-   enum ObjectType { SPHERE, BOX, PLANE };
-   struct Object {
-       glm::vec3 position;
-       ObjectType type;
-       union {
-           float radius;        // For spheres
-           glm::vec3 dimensions; // For boxes
-       };
-   };
+   // Create subdivided quad with more triangles
+   static Mesh* CreateSubdividedQuad(int subdivisions);
+   // Generate (subdivisions+1)² vertices
+   // Create subdivisions² quads, each made of 2 triangles
    ```
 
-2. **Implement ray-box intersection**:
+3. **Color Pattern Experiments**:
    ```cpp
-   bool TestRayCasting::RayIntersectsBox(const glm::vec3& rayOrigin,
-       const glm::vec3& rayDirection, const glm::vec3& boxMin, const glm::vec3& boxMax);
+   // Try different color assignment patterns
+   void GeometryFactory::AssignColors(std::vector<Vertex>& vertices) {
+       for (size_t i = 0; i < vertices.size(); ++i) {
+           // Rainbow pattern
+           float hue = (float)i / vertices.size() * 360.0f;
+           // Convert HSV to RGB for smooth color transitions
+       }
+   }
    ```
 
-3. **Add intersection distance calculation**:
-   - Calculate and display the distance to intersection point
-   - Show intersection coordinates in ImGui
-   - Implement closest object selection when multiple intersections occur
+### Advanced Geometry Challenges:
+1. **Add New Primitives**:
+   ```cpp
+   // Extend GeometryFactory with new shapes
+   static Mesh* CreatePyramid();        // 5 vertices, 8 triangles
+   static Mesh* CreateOctahedron();     // 6 vertices, 8 triangles
+   static Mesh* CreateIcosahedron();    // 12 vertices, 20 triangles
+   ```
 
-### Combined Challenges:
-1. **Textured spheres in ray casting**:
-   - Apply textures to the ray casting spheres
-   - Calculate UV coordinates for sphere surfaces
-   - Show different textures on each object
+2. **Parametric Generation**:
+   ```cpp
+   // Add parameters to primitive generation
+   static Mesh* CreateQuad(float width, float height);
+   static Mesh* CreateCube(float width, float height, float depth);
+   static Mesh* CreateTriangle(float base, float height);
+   ```
 
-2. **3D texture positioning**:
-   - Modify testTexture2D to work in 3D space
-   - Add camera controls similar to ray casting test
-   - Combine 2D texture techniques with 3D perspective
+3. **UV Coordinate Experiments**:
+   ```cpp
+   // Modify UV mapping for different texture effects
+   void AssignUVCoordinates(std::vector<Vertex>& vertices, UVMode mode) {
+       switch (mode) {
+           case UV_STANDARD:  // 0-1 mapping
+           case UV_REPEAT:    // 0-2 mapping (texture repeats)
+           case UV_CENTERED:  // -0.5 to 0.5 mapping
+       }
+   }
+   ```
+
+### Interactive Enhancements:
+1. **Animation Systems**:
+   ```cpp
+   // Add vertex animation to testGeometryFactories
+   void UpdateVertexPositions(float time) {
+       // Animate vertex positions for morphing effects
+       // Try sine waves, rotation, scaling animations
+   }
+   ```
+
+2. **Multi-geometry Rendering**:
+   ```cpp
+   // Render multiple primitives simultaneously
+   std::vector<std::unique_ptr<Mesh>> m_Meshes;
+   std::vector<GeometryType> m_Types;
+   // Display all primitive types in a grid layout
+   ```
+
+3. **Performance Monitoring**:
+   ```cpp
+   // Add performance metrics to GUI
+   ImGui::Text("Vertices: %d", vertexCount);
+   ImGui::Text("Triangles: %d", triangleCount);
+   ImGui::Text("Draw Calls: %d", drawCallCount);
+   ImGui::Text("GPU Memory: %.2f MB", memoryUsage);
+   ```
+
+## Implementation Details
+
+### Memory Management
+The GeometryFactory system emphasizes proper memory management:
+
+```cpp
+// Factory returns raw pointers for direct OpenGL resource management
+Mesh* GeometryFactory::CreateTriangle() {
+    std::vector<Vertex> vertices = GenerateTriangleVertices();
+    std::vector<unsigned int> indices = GenerateTriangleIndices();
+    return new Mesh(vertices, indices);  // Caller responsible for deletion
+}
+
+// Test class properly manages mesh lifecycle
+testGeometryFactories::~testGeometryFactories() {
+    delete m_CurrentMesh;  // Clean resource cleanup
+    delete m_Shader;
+    delete m_Renderer;
+}
+```
+
+### Vertex Layout Optimization
+The Vertex structure is designed for optimal GPU performance:
+
+```cpp
+struct Vertex {
+    float position[3];   // 12 bytes, aligned to 4-byte boundary
+    float colour[3];     // 12 bytes, aligned to 4-byte boundary
+    float texCoords[2];  // 8 bytes, aligned to 4-byte boundary
+    // Total: 32 bytes per vertex (cache-friendly size)
+};
+```
+
+### Index Buffer Efficiency
+Different primitives demonstrate various levels of vertex reuse:
+
+```cpp
+// Triangle: No vertex sharing (efficiency ratio: 1.0)
+// 3 vertices, 3 indices = 100% unique vertices
+
+// Quad: Moderate vertex sharing (efficiency ratio: 0.67)
+// 4 vertices, 6 indices = 67% unique vertices
+
+// Cube: High vertex sharing (efficiency ratio: 0.22)
+// 8 vertices, 36 indices = 22% unique vertices
+```
 
 ## Common Issues & Solutions
 
-### "Texture not displaying correctly"
-**Texture Loading Problems:**
-- **File path issues**: Ensure texture files exist in res/Textures/ directory
-- **Image format**: Verify PNG files are properly formatted
-- **UV coordinate problems**: Check vertex data includes correct texture coordinates
-- **Texture binding**: Ensure texture is bound before rendering
-
-### "Ray casting not detecting intersections"
-**Mathematical Issues:**
-- **Ray direction calculation**: Verify mouse-to-world coordinate conversion
-- **Matrix inversions**: Check that view and projection matrices are valid
-- **Sphere positioning**: Ensure objects are positioned within camera view
-- **Discriminant calculation**: Verify ray-sphere intersection math
-
-### "ImGui controls not responsive"
-**GUI Integration Problems:**
-- **Event handling**: Ensure GLFW events are processed before ImGui
-- **Context binding**: Verify ImGui context is current during GUI rendering
-- **Slider ranges**: Check that slider min/max values are appropriate
-- **Variable updates**: Ensure GUI changes affect the actual rendering variables
-
-### "Performance issues with 3D rendering"
-**Optimization Concerns:**
+### "Geometry not displaying correctly"
+**Vertex Data Problems:**
+- **Index order**: Ensure counter-clockwise winding for front faces
+- **Position coordinates**: Verify vertex positions are in valid range
+- **Matrix transformations**: Check that MVP matrix transforms are correct
 - **Depth testing**: Enable GL_DEPTH_TEST for proper 3D rendering
-- **Vertex buffer size**: Consider the number of vertices in sphere generation
-- **Draw call frequency**: Avoid redundant OpenGL state changes
-- **Matrix calculations**: Cache frequently used transformation matrices
+
+### "Colors not appearing as expected"
+**Color Assignment Issues:**
+- **Value ranges**: Ensure color values are in [0.0, 1.0] range
+- **Vertex attributes**: Verify color attribute is properly bound in shader
+- **Shader uniforms**: Check that fragment shader uses vertex colors correctly
+- **Alpha channel**: Consider if alpha blending affects color appearance
+
+### "Memory leaks or crashes"
+**Resource Management Problems:**
+- **Mesh deletion**: Ensure proper cleanup in destructors
+- **Factory ownership**: Caller must delete returned Mesh pointers
+- **OpenGL resources**: Verify VAO/VBO/EBO are properly released
+- **Shader compilation**: Check for shader compilation/linking errors
+
+### "Performance issues with complex geometry"
+**Optimization Concerns:**
+- **Vertex count**: Monitor vertex/triangle count for performance
+- **Index buffer usage**: Prefer indexed rendering for vertex reuse
+- **State changes**: Minimize OpenGL state changes between draws
+- **Memory allocation**: Consider object pooling for frequent mesh creation
 
 ## What's Next?
 
-Building on this foundation of 2D textures and ray casting, future branches will explore:
-- **Advanced Lighting Models**: Implementing Phong, Blinn-Phong, and PBR shading
-- **3D Texture Mapping**: Cube maps, normal mapping, and displacement mapping
-- **Ray Tracing Extensions**: Reflection, refraction, and global illumination
-- **Performance Optimization**: Frustum culling, level-of-detail, and instanced rendering
-- **Advanced Ray Casting**: Acceleration structures like BVH or octrees
-- **Material Systems**: Complex material properties and multi-pass rendering
+Building on this geometry factory foundation, future branches will explore:
+- **Advanced Geometry (Branch 12)**: Parametric surfaces, spheres, cylinders with mathematical generation
+- **Mesh Loading (Branch 15)**: External model file parsing and vertex data extraction
+- **Subdivision Surfaces**: Smooth surface generation from base geometry
+- **Procedural Generation**: Algorithmic geometry creation and terrain systems
+- **Geometry Shaders**: GPU-based primitive generation and modification
+- **Instanced Rendering**: Efficient rendering of multiple geometry instances
 
 ## Resources for Deeper Learning
 
-### Computer Graphics Fundamentals:
-- [Real-Time Rendering by Möller, Haines & Hoffman](https://www.realtimerendering.com/)
-- [Fundamentals of Computer Graphics by Shirley & Marschner](https://www.amazon.com/Fundamentals-Computer-Graphics-Steve-Marschner/dp/1482229390)
-- [Ray Tracing in One Weekend Series](https://raytracing.github.io/)
-
-### OpenGL and Graphics Programming:
-- [LearnOpenGL](https://learnopengl.com/) - Comprehensive OpenGL tutorial series
-- [OpenGL Programming Guide](https://www.opengl.org/documentation/books/#the_opengl_programming_guide_the_official_guide_to_learning_opengl_version_4_5_with_spir_v)
-- [GPU Gems Series](https://developer.nvidia.com/gpugems/gpugems) - Advanced GPU programming techniques
-
-### Mathematical Foundations:
-- [3D Math Primer for Graphics and Game Development](https://gamemath.com/)
+### Geometry and Mathematics:
+- [Real-Time Rendering by Möller, Haines & Hoffman](https://www.realtimerendering.com/) - Chapter 12: Acceleration Algorithms
+- [3D Math Primer for Graphics and Game Development](https://gamemath.com/) - Geometry representation
 - [Mathematics for 3D Game Programming and Computer Graphics](https://www.amazon.com/Mathematics-Programming-Computer-Graphics-Third/dp/1435458869)
-- [GLM Documentation](https://glm.g-truc.net/) - Learn the mathematical operations used in this project
+
+### OpenGL and Vertex Data:
+- [LearnOpenGL - Hello Triangle](https://learnopengl.com/Getting-started/Hello-Triangle) - Fundamental vertex concepts
+- [OpenGL Programming Guide](https://www.opengl.org/documentation/books/) - Chapter 2: State Management and Drawing
+- [OpenGL Vertex Specification](https://www.khronos.org/opengl/wiki/Vertex_Specification)
+
+### Design Patterns and Code Organization:
+- [Game Programming Patterns by Robert Nystrom](http://gameprogrammingpatterns.com/) - Factory and Object Pool patterns
+- [Effective C++ by Scott Meyers](https://www.aristeia.com/books.html) - Resource management
+- [Clean Code by Robert Martin](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350884)
 
 ### Interactive Learning:
-- [Shadertoy](https://www.shadertoy.com/) - Experiment with fragment shaders online
-- [GeoGebra 3D](https://www.geogebra.org/3d) - Visualize 3D mathematical concepts
-- [Ray Casting Visualizations](https://www.cs.cornell.edu/courses/cs4620/2013fa/lectures/03raytracing.pdf)
-
-### Development Tools:
-- **RenderDoc**: Frame capture and analysis for OpenGL debugging
-- **Nsight Graphics**: NVIDIA's graphics debugging and profiling tool
-- **Visual Studio Graphics Diagnostics**: Built-in graphics debugging capabilities
+- [GeoGebra 3D](https://www.geogebra.org/3d) - Visualize 3D geometry concepts
+- [Desmos 3D Calculator](https://www.desmos.com/3d) - Explore parametric equations
+- [Shadertoy](https://www.shadertoy.com/) - Experiment with procedural geometry
 
 ## Debug Tips
 
-### Debugging Texture Issues:
+### Debugging Vertex Data:
 ```cpp
-// Check texture loading in testTexture2D constructor
-if (!m_Texture) {
-    std::cout << "Failed to load texture: res/Textures/1.png" << std::endl;
-}
-
-// Verify texture binding
-GLint currentTexture;
-glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
-std::cout << "Current bound texture: " << currentTexture << std::endl;
-```
-
-### Debugging Ray Casting Math:
-```cpp
-// Validate ray direction in TestRayCasting::Update()
-std::cout << "Ray Origin: (" << rayOrigin.x << ", " << rayOrigin.y << ", " << rayOrigin.z << ")" << std::endl;
-std::cout << "Ray Direction: (" << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << ")" << std::endl;
-
-// Check intersection calculations
-float discriminant = b * b - 4 * a * c;
-std::cout << "Discriminant: " << discriminant << " (>0 means intersection)" << std::endl;
-```
-
-### Matrix Validation:
-```cpp
-// Print matrices for debugging transformations
-void PrintMatrix(const glm::mat4& matrix, const std::string& name) {
-    std::cout << name << ":" << std::endl;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            std::cout << matrix[i][j] << " ";
-        }
-        std::cout << std::endl;
+// Print vertex information for validation
+void PrintVertices(const std::vector<Vertex>& vertices) {
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        std::cout << "Vertex " << i << ": ";
+        std::cout << "Pos(" << vertices[i].position[0] << ", "
+                  << vertices[i].position[1] << ", " << vertices[i].position[2] << ") ";
+        std::cout << "Color(" << vertices[i].colour[0] << ", "
+                  << vertices[i].colour[1] << ", " << vertices[i].colour[2] << ") ";
+        std::cout << "UV(" << vertices[i].texCoords[0] << ", "
+                  << vertices[i].texCoords[1] << ")" << std::endl;
     }
 }
 ```
 
-### Common Issues:
-- **UV coordinates outside [0,1]**: Can cause texture sampling issues
-- **Incorrect matrix multiplication order**: MVP should be Projection * View * Model
-- **Missing depth testing**: Essential for proper 3D rendering in ray casting
-- **ImGui slider ranges**: Ensure min/max values allow meaningful interaction
+### Debugging Index Buffers:
+```cpp
+// Validate index buffer correctness
+void ValidateIndices(const std::vector<unsigned int>& indices, size_t vertexCount) {
+    for (size_t i = 0; i < indices.size(); ++i) {
+        if (indices[i] >= vertexCount) {
+            std::cout << "Invalid index at position " << i << ": " << indices[i]
+                      << " (vertex count: " << vertexCount << ")" << std::endl;
+        }
+    }
+
+    // Check for proper triangle winding
+    for (size_t i = 0; i < indices.size(); i += 3) {
+        std::cout << "Triangle " << (i/3) << ": "
+                  << indices[i] << ", " << indices[i+1] << ", " << indices[i+2] << std::endl;
+    }
+}
+```
+
+### OpenGL State Debugging:
+```cpp
+// Check OpenGL errors after geometry operations
+void CheckGLError(const std::string& operation) {
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cout << "OpenGL Error in " << operation << ": " << error << std::endl;
+    }
+}
+
+// Usage
+CheckGLError("Vertex Buffer Creation");
+CheckGLError("Index Buffer Creation");
+CheckGLError("Vertex Array Setup");
+```
 
 ---
 
+This branch establishes the foundation for all future geometry work by providing clean, efficient, and educational primitive generation systems. The factory pattern ensures consistent geometry creation while the interactive test demonstrates real-world usage patterns.

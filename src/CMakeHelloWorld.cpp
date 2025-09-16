@@ -1,4 +1,4 @@
-﻿#include <GL/glew.h>                // GLEW library for managing OpenGL extensions
+#include <GL/glew.h>                // GLEW library for managing OpenGL extensions
 #include <GLFW/glfw3.h>             // GLFW for window management and input handling
 #include <iostream>                 // For console output
 #include <string>
@@ -13,6 +13,7 @@
 #include "tests/testClearColour.h"
 #include "tests/testTexture2D.h"
 #include "tests/testRayCasting.h"
+#include "tests/testGeometryFactories.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 #include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
@@ -80,8 +81,9 @@ int main() {
 
         currentTest = TestMenu;
 
-        // Register tests in the specified order for branch 10: fundamental concepts first
+        // Register tests in the specified order for branch 11: geometry factories
         TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
+        TestMenu->RegisterTest<test::testGeometryFactories>("Test Geometry Factories");
         TestMenu->RegisterTest<test::testTexture2D>("Test Texture2D");
         TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting");
 
