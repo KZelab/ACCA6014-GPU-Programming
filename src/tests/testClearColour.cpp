@@ -1,6 +1,6 @@
 #include "testClearColour.h"
-#include "Renderer/Renderer.h"
-#include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
+#include "../Renderer.h"
+#include "../vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 
 namespace test
 {

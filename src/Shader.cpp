@@ -63,7 +63,10 @@ unsigned int Shader::getUniformLocation(const std::string& name)
     {
         return m_uniformLocationCache[name];
     }
-    GlCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
+
+    int location;
+    GlCall(location = glGetUniformLocation(m_RendererID, name.c_str()));
+
     if (location == -1)
         std::cout << "WARNING:: Uniform " << name << " is not defined \n";
     
@@ -103,7 +106,10 @@ ShaderProgramSource Shader::parseShaders(const std::string& filepath)
         }
         else
         {
-            ss[(int)type] << line << "\n";
+            if (type != ShaderType::NONE)
+            {
+                ss[(int)type] << line << "\n";
+            }
         }
     }
     std::cout << ss[0].str() << ss[1].str() << std::endl;
@@ -155,6 +161,12 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
 {
     // Create a shader program and get its ID
     unsigned int program = glCreateProgram();
+    // Check if context was valid and program creation worked
+    if (program == 0) {
+        std::cerr << "Error: glCreateProgram() failed. No valid OpenGL context?" << std::endl;
+        return 0;
+    }
+
     // Compile the vertex shader
     unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
     // Compile the fragment shader
@@ -162,10 +174,43 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
     // Attach the compiled shaders to the program
     glAttachShader(program, vs);
     glAttachShader(program, fs);
-    // Link the shaders together into a complete program
+
+
+    // --- ADD THIS LINE ---
     glLinkProgram(program);
+    // --- END ADDITION ---
+
+    // Now it is safe to check the link status
+    int linkSuccess;
+    glGetProgramiv(program, GL_LINK_STATUS, &linkSuccess);
+    if (linkSuccess == GL_FALSE) {
+        int length;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+        char* message = (char*)alloca(length * sizeof(char));
+        glGetProgramInfoLog(program, length, &length, message);
+        std::cerr << "Failed to link shader program: " << message << std::endl;
+
+        // Don't leak resources
+        glDeleteProgram(program);
+        glDeleteShader(vs);
+        glDeleteShader(fs);
+        return 0;
+    }
     // Validate the linked program to ensure it's usable
     glValidateProgram(program);
+    int validateSuccess;
+    glGetProgramiv(program, GL_VALIDATE_STATUS, &validateSuccess);
+    if (validateSuccess == GL_FALSE) {
+        // ... (add log checking just like for linking) ...
+        std::cerr << "Shader program validation failed." << std::endl;
+    }
+
+
+    // Delete the intermediate shader objects; they are no longer needed
+    // after they've been linked into the program.
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
     return program;
 }
 

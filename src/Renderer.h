@@ -4,6 +4,10 @@
 #include "IndexBuffer.h"
 #include "Shader.h"
 
+
+
+
+
 #define ASSERT(x) if (!(x)) __debugbreak(); //validate a condition that checks if bool false add a breakpoint 
 
 #define GlCall(x) glClearError();\
