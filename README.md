@@ -6,8 +6,6 @@ Master 2D texture mapping, sampling techniques, and fundamental ray casting algo
 ## What You'll Build
 An interactive test suite with three focused demonstrations: basic framebuffer clearing, comprehensive 2D texture operations, and ray casting techniques. Each test provides real-time parameter adjustment and visual feedback to understand the underlying graphics programming concepts.
 
-![Expected Result](docs/images/10-textures-and-raycasting.png)
-*A 960x540 window with an ImGui interface demonstrating texture mapping and ray casting concepts*
 
 ## Key Concepts
 
@@ -16,10 +14,14 @@ An interactive test suite with three focused demonstrations: basic framebuffer c
 - **Texture Operations**: Loading, binding, and manipulating texture data
 - **Texture Filtering**: Linear vs nearest neighbour sampling techniques
 - **Texture Wrapping**: Repeat, clamp, and mirror wrapping modes
-- **Ray Casting Fundamentals**: Ray-object intersection algorithms
-- **Geometric Calculations**: Vector mathematics for 3D graphics
+- **Ray Casting Fundamentals**: Comprehensive ray-object intersection algorithms
+  - **Quadratic Equation Method**: Analytical solution for ray-sphere intersection
+  - **Slab Method**: Efficient ray-AABB intersection for cubes
+  - **Screen-to-World Transformation**: 5-step coordinate space conversion pipeline
+- **Geometric Calculations**: Vector mathematics, dot products, and parametric equations
 - **Interactive Parameter Testing**: Real-time adjustment of graphics parameters
 - **Visual Debugging**: Using colour coding and visual feedback for algorithm validation
+- **Multi-primitive Support**: Handling different geometry types with appropriate algorithms
 
 ### Test Demonstrations:
 - **testClearColour**: Fundamental framebuffer clearing and colour management
@@ -79,12 +81,13 @@ Dependencies:
 - Procedural texture generation and manipulation
 
 **testRayCasting - Geometric Algorithms:**
-- Ray generation from camera/mouse position
-- Ray-sphere intersection calculations
-- Ray-plane intersection algorithms
-- Vector mathematics for 3D graphics
-- Real-time intersection visualisation
-- Interactive geometry parameter adjustment
+- Ray generation from camera/mouse position using screen-to-world transformation
+- Ray-sphere intersection using analytical quadratic equation method
+- Ray-AABB (Axis-Aligned Bounding Box) intersection using slab method
+- Multiple object type support (spheres and cubes)
+- Vector mathematics and geometric calculations for 3D graphics
+- Real-time intersection visualisation with color-coded feedback
+- Interactive geometry parameter adjustment via ImGui
 
 ### Educational Progression
 
@@ -166,39 +169,96 @@ float positions[] = {
 
 ### testRayCasting Implementation
 
-**Ray Generation and Mathematics:**
+**Ray Generation - Screen to World Space Transformation:**
 ```cpp
-// Calculate ray direction from mouse position
-glm::vec3 TestRayCasting::CalculateRayDirection(float mouseX, float mouseY) {
-    // Convert mouse position to NDC
+/**
+ * 5-Step Coordinate Space Transformation:
+ * Screen Space → NDC → Clip Space → Eye Space → World Space
+ */
+glm::vec3 testRayCasting::CalculateRayDirection(float mouseX, float mouseY) {
+    int width, height;
+    glfwGetFramebufferSize(m_window, &width, &height);
+
+    // Step 1: Convert screen coordinates to NDC [-1, 1]
     float x = (2.0f * mouseX) / width - 1.0f;
     float y = 1.0f - (2.0f * mouseY) / height; // Invert Y-axis
 
+    // Step 2-3: Create ray in clip space
     glm::vec4 rayClip(x, y, -1.0f, 1.0f);
     glm::vec4 rayEye = glm::inverse(projectionMatrix) * rayClip;
     rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+
+    // Step 4-5: Transform to world space
     glm::vec3 rayWorld = glm::vec3(glm::inverse(viewMatrix) * rayEye);
     return glm::normalize(rayWorld);
 }
+```
 
-// Ray-sphere intersection test
-bool TestRayCasting::RayIntersectsSphere(const glm::vec3& rayOrigin,
+**Ray-Sphere Intersection - Quadratic Equation Method:**
+```cpp
+/**
+ * Solves: ||rayOrigin + t*rayDirection - sphereCenter||² = sphereRadius²
+ * Results in quadratic: a*t² + b*t + c = 0
+ * Discriminant (b² - 4ac) determines intersection
+ */
+bool testRayCasting::RayIntersectsSphere(const glm::vec3& rayOrigin,
     const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius) {
     glm::vec3 oc = rayOrigin - sphereCenter;
+
+    // Quadratic coefficients
     float a = glm::dot(rayDirection, rayDirection);
     float b = 2.0f * glm::dot(oc, rayDirection);
     float c = glm::dot(oc, oc) - sphereRadius * sphereRadius;
-    float discriminant = b * b - 4 * a * c;
-    return discriminant > 0; // Intersection if discriminant > 0
+
+    float discriminant = b * b - 4.0f * a * c;
+    if (discriminant < 0.0f) return false;
+
+    // Calculate intersection points and validate they're in front of camera
+    float sqrtDiscriminant = sqrt(discriminant);
+    float t1 = (-b - sqrtDiscriminant) / (2.0f * a);
+    float t2 = (-b + sqrtDiscriminant) / (2.0f * a);
+
+    return (t1 >= 0.0f || t2 >= 0.0f);
+}
+```
+
+**Ray-AABB Intersection - Slab Method:**
+```cpp
+/**
+ * Tests intersection with Axis-Aligned Bounding Box using slab method.
+ * AABB is intersection of 3 pairs of parallel planes (slabs).
+ * Ray intersects box if it intersects all slabs simultaneously.
+ */
+bool testRayCasting::RayIntersectsCube(const glm::vec3& rayOrigin,
+    const glm::vec3& rayDirection, const glm::vec3& boxCenter, float boxSize) {
+    // Calculate AABB bounds
+    glm::vec3 boxMin = boxCenter - glm::vec3(boxSize);
+    glm::vec3 boxMax = boxCenter + glm::vec3(boxSize);
+
+    // Calculate t parameters for plane intersections
+    glm::vec3 tMin = (boxMin - rayOrigin) / rayDirection;
+    glm::vec3 tMax = (boxMax - rayOrigin) / rayDirection;
+
+    // Ensure t1 has entry times, t2 has exit times
+    glm::vec3 t1 = glm::min(tMin, tMax);
+    glm::vec3 t2 = glm::max(tMin, tMax);
+
+    // Find overall entry and exit points
+    float tNear = glm::max(glm::max(t1.x, t1.y), t1.z);
+    float tFar = glm::min(glm::min(t2.x, t2.y), t2.z);
+
+    return tNear <= tFar && tFar > 0.0f;
 }
 ```
 
 **3D Interactive Features:**
-- WASD camera movement through 3D space
-- Mouse-based ray casting from camera position
-- Real-time sphere intersection detection and highlighting
-- 3D sphere generation with parametric equations
-- Visual feedback through colour changes (green for selected, red for unselected)
+- **WASD camera movement** through 3D space with adjustable speed
+- **Mouse-based ray casting** from camera position with real-time picking
+- **Multiple object types**: Spheres (parametric generation) and cubes (8 vertices, 12 triangles)
+- **Dual intersection algorithms**: Quadratic method for spheres, slab method for AABBs
+- **Visual feedback**: Green for selected objects, red for unselected
+- **ImGui debug panel**: Shows camera position, selected object info (name, position, size, type)
+- **Comprehensive documentation**: Inline comments explaining all algorithms and mathematics
 
 ## Implementation Details
 
@@ -261,30 +321,50 @@ shader.setUniformMat4f("projection", projectionMatrix);
    - Add ImGui slider to control blend factor
 
 ### Ray Casting Enhancements:
-1. **Add different object types**:
+
+**✅ Already Implemented:**
+- **Multiple object types**: Spheres and cubes with proper type system
+- **Ray-AABB intersection**: Slab method for cube intersection testing
+- **Type-safe Object structure**: Using `ObjectType` enum and unified `size` field
+- **Comprehensive documentation**: All algorithms fully commented with mathematical explanations
+
+**Potential Extensions:**
+1. **Add intersection distance calculation**:
    ```cpp
-   // Extend the Object struct to support different shapes
-   enum ObjectType { SPHERE, BOX, PLANE };
-   struct Object {
-       glm::vec3 position;
-       ObjectType type;
-       union {
-           float radius;        // For spheres
-           glm::vec3 dimensions; // For boxes
-       };
+   // Modify RayIntersectsSphere to return distance
+   struct RayHit {
+       bool hit;
+       float distance;
+       glm::vec3 point;
+       glm::vec3 normal;
    };
+   RayHit RayIntersectsSphere(const glm::vec3& rayOrigin,
+       const glm::vec3& rayDirection, const glm::vec3& sphereCenter, float sphereRadius);
    ```
 
-2. **Implement ray-box intersection**:
+2. **Add more primitive shapes**:
    ```cpp
-   bool TestRayCasting::RayIntersectsBox(const glm::vec3& rayOrigin,
-       const glm::vec3& rayDirection, const glm::vec3& boxMin, const glm::vec3& boxMax);
+   enum class ObjectType { Sphere, Cube, Plane, Cylinder, Cone };
+
+   // Implement ray-plane intersection
+   bool RayIntersectsPlane(const glm::vec3& rayOrigin,
+       const glm::vec3& rayDirection, const glm::vec3& planePoint,
+       const glm::vec3& planeNormal);
    ```
 
-3. **Add intersection distance calculation**:
-   - Calculate and display the distance to intersection point
-   - Show intersection coordinates in ImGui
-   - Implement closest object selection when multiple intersections occur
+3. **Implement closest object selection**:
+   ```cpp
+   // When multiple intersections occur, select the nearest one
+   float minDistance = FLT_MAX;
+   int closestObjectIndex = -1;
+   for (size_t i = 0; i < objects.size(); ++i) {
+       RayHit hit = TestIntersection(objects[i]);
+       if (hit.hit && hit.distance < minDistance) {
+           minDistance = hit.distance;
+           closestObjectIndex = i;
+       }
+   }
+   ```
 
 ### Combined Challenges:
 1. **Textured spheres in ray casting**:
@@ -297,6 +377,15 @@ shader.setUniformMat4f("projection", projectionMatrix);
    - Add camera controls similar to ray casting test
    - Combine 2D texture techniques with 3D perspective
 
+
+### ✅ Enhanced: Comprehensive Algorithm Documentation
+All ray casting algorithms now include:
+- **Mathematical foundations** explaining the equations
+- **Step-by-step breakdowns** of coordinate transformations
+- **Edge case handling** documentation
+- **Visual diagrams** for complex geometry (cube vertices)
+- **Parameter validation** notes
+
 ## Common Issues & Solutions
 
 ### "Texture not displaying correctly"
@@ -308,10 +397,12 @@ shader.setUniformMat4f("projection", projectionMatrix);
 
 ### "Ray casting not detecting intersections"
 **Mathematical Issues:**
-- **Ray direction calculation**: Verify mouse-to-world coordinate conversion
-- **Matrix inversions**: Check that view and projection matrices are valid
-- **Sphere positioning**: Ensure objects are positioned within camera view
-- **Discriminant calculation**: Verify ray-sphere intersection math
+- **Ray direction calculation**: Verify mouse-to-world coordinate conversion (see testRayCasting.cpp:298-336)
+- **Matrix inversions**: Check that view and projection matrices are valid before inverting
+- **Object positioning**: Ensure objects are positioned within camera view frustum
+- **Discriminant calculation**: For spheres, verify discriminant b²-4ac is calculated correctly
+- **AABB bounds**: For cubes, ensure boxMin and boxMax are calculated from center and half-extent
+- **t-parameter validation**: Both algorithms check that t > 0 (intersection in front of camera)
 
 ### "ImGui controls not responsive"
 **GUI Integration Problems:**
@@ -329,13 +420,15 @@ shader.setUniformMat4f("projection", projectionMatrix);
 
 ## What's Next?
 
-Building on this foundation of 2D textures and ray casting, future branches will explore:
+Building on this foundation of 2D textures and comprehensive ray casting, future branches will explore:
 - **Advanced Lighting Models**: Implementing Phong, Blinn-Phong, and PBR shading
 - **3D Texture Mapping**: Cube maps, normal mapping, and displacement mapping
-- **Ray Tracing Extensions**: Reflection, refraction, and global illumination
+- **Ray Tracing Extensions**: Reflection, refraction, shadows, and global illumination
 - **Performance Optimization**: Frustum culling, level-of-detail, and instanced rendering
-- **Advanced Ray Casting**: Acceleration structures like BVH or octrees
+- **Advanced Ray Casting**: Acceleration structures (BVH, octrees, spatial hashing)
 - **Material Systems**: Complex material properties and multi-pass rendering
+- **Additional Primitives**: Cylinders, cones, planes, and arbitrary meshes
+- **Intersection Refinement**: Normal calculation, UV mapping at hit points, closest-hit selection
 
 ## Resources for Deeper Learning
 
@@ -381,13 +474,23 @@ std::cout << "Current bound texture: " << currentTexture << std::endl;
 
 ### Debugging Ray Casting Math:
 ```cpp
-// Validate ray direction in TestRayCasting::Update()
+// Validate ray direction in testRayCasting::Update()
 std::cout << "Ray Origin: (" << rayOrigin.x << ", " << rayOrigin.y << ", " << rayOrigin.z << ")" << std::endl;
 std::cout << "Ray Direction: (" << rayDirection.x << ", " << rayDirection.y << ", " << rayDirection.z << ")" << std::endl;
 
-// Check intersection calculations
-float discriminant = b * b - 4 * a * c;
+// Check sphere intersection calculations
+float discriminant = b * b - 4.0f * a * c;
 std::cout << "Discriminant: " << discriminant << " (>0 means intersection)" << std::endl;
+if (discriminant >= 0.0f) {
+    float sqrtDiscriminant = sqrt(discriminant);
+    float t1 = (-b - sqrtDiscriminant) / (2.0f * a);
+    float t2 = (-b + sqrtDiscriminant) / (2.0f * a);
+    std::cout << "t1: " << t1 << ", t2: " << t2 << " (>=0 means in front)" << std::endl;
+}
+
+// Check AABB intersection for cubes
+std::cout << "tNear: " << tNear << ", tFar: " << tFar << std::endl;
+std::cout << "Intersection: " << (tNear <= tFar && tFar > 0.0f ? "YES" : "NO") << std::endl;
 ```
 
 ### Matrix Validation:
@@ -404,11 +507,6 @@ void PrintMatrix(const glm::mat4& matrix, const std::string& name) {
 }
 ```
 
-### Common Issues:
-- **UV coordinates outside [0,1]**: Can cause texture sampling issues
-- **Incorrect matrix multiplication order**: MVP should be Projection * View * Model
-- **Missing depth testing**: Essential for proper 3D rendering in ray casting
-- **ImGui slider ranges**: Ensure min/max values allow meaningful interaction
 
 ---
 

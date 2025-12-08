@@ -83,7 +83,7 @@ int main() {
         // Register tests in the specified order for branch 10: fundamental concepts first
         TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
         TestMenu->RegisterTest<test::testTexture2D>("Test Texture2D");
-        TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting");
+        TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting", window);
 
 
         float lastTimeFrame = 0.0f;

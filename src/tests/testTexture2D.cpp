@@ -4,9 +4,9 @@
 #include "glm/glm.hpp"              // GLM for mathematical operations and matrix manipulation
 #include "glm/gtc/matrix_transform.hpp" // For GLM transformations, like translating matrices
 
-#include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
-#include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
-#include "vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
+#include "../vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
+#include "../vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
+#include "../vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
 
 #include <memory>
 namespace test

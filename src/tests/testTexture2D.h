@@ -1,22 +1,23 @@
 ﻿#pragma once
-#include "tests/Tests.h"
-#include "Renderer/Renderer.h"               // Custom renderer wrapper
+#include "Tests.h"
+
+#include "../Renderer.h"               // Custom renderer wrapper
 
 #include "glm/glm.hpp"              // GLM for mathematical operations and matrix manipulation
 #include "glm/gtc/matrix_transform.hpp" // For GLM transformations, like translating matrices
-#include "../buffers/VertexBuffer.h"
-#include "../buffers/VertexBufferLayout.h"
-#include "../buffers/IndexBuffer.h"
-#include "../buffers/VertexArray.h"
-#include "../buffers/Shader.h"
-#include "buffers/Texture.h"
+#include "../VertexBuffer.h"
+#include "../VertexBufferLayout.h"
+#include "../IndexBuffer.h"
+#include "../VertexArray.h"
+#include "../Shader.h"
+#include "../Texture.h"
 
 #include "glm/glm.hpp"              // GLM for mathematical operations and matrix manipulation
 #include "glm/gtc/matrix_transform.hpp" // For GLM transformations, like translating matrices
 
-#include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
-#include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
-#include "vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
+#include "../vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
+#include "../vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
+#include "../vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
 
 #include <memory>
 
