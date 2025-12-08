@@ -35,34 +35,6 @@ An interactive test suite with three focused demonstrations: basic framebuffer c
 - **Intersection Visualisation**: Real-time feedback for ray-object intersections
 - **Parameter Controls**: Interactive sliders for texture and ray casting parameters
 
-## Code Architecture
-
-### File Structure
-```
-src/
-├── CMakeHelloWorld.cpp       # Test harness application with focused demonstrations
-├── Shader.h/.cpp             # Shader compilation and uniform management
-├── Mesh.h/.cpp               # Vertex data and geometry abstraction
-├── Renderer.h/.cpp           # High-level rendering commands
-├── VertexArray.h/.cpp        # VAO wrapper
-├── VertexBuffer.h/.cpp       # VBO wrapper
-├── IndexBuffer.h/.cpp        # EBO wrapper
-├── VertexBufferLayout.h      # Vertex attribute layout helper
-├── tests/
-│   ├── Tests.h/.cpp          # Base test framework classes
-│   ├── testClearColour.h/.cpp # Basic framebuffer clearing demonstration
-│   ├── testTexture2D.h/.cpp  # 2D texture mapping and sampling techniques
-│   └── testRayCasting.h/.cpp # Ray casting algorithms and intersection testing
-└── vendor/
-    └── imgui/                # Dear ImGui library for interactive GUI
-
-Dependencies:
-├── OpenGL 3.3+              # Graphics API
-├── GLM Library              # Vector and matrix mathematics
-├── GLFW                     # Window management
-├── GLEW                     # OpenGL extension loading
-└── Dear ImGui               # Interactive parameter controls
-```
 
 ### Test Demonstrations Overview
 
@@ -102,46 +74,10 @@ Dependencies:
 - Mouse interaction for ray casting demonstrations
 - Educational descriptions explaining each concept
 
-## What's Different from Previous Branch (09-test-harness)
 
-### New Additions:
-- **testTexture2D**: Comprehensive 2D texture mapping and sampling demonstration
-- **testRayCasting**: Interactive ray casting algorithms and intersection testing
-- **Advanced Graphics Concepts**: Moving beyond basic rendering to computational graphics
-- **Mathematical Visualisation**: Real-time display of geometric calculations
-- **Interactive Algorithm Testing**: Parameter adjustment for texture and ray casting operations
-- **Educational Progression**: Building from fundamental concepts to advanced techniques
 
-### What Stayed the Same:
-- Essential test framework architecture (Tests.h/cpp)
-- testClearColour as foundational demonstration
-- ImGui integration for interactive parameter control
-- Real-time visual feedback and educational interface
-- Clean project structure and modular design
 
-## Understanding the Code
 
-### testClearColour Implementation
-
-**Core Functionality:**
-```cpp
-// Basic framebuffer clearing with different buffer types
-void testClearColour::Render() {
-    if (m_ClearDepth && m_ClearStencil) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    } else if (m_ClearDepth) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    } else {
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-}
-```
-
-**Interactive Features:**
-- Colour presets for quick testing
-- Animated colour transitions
-- Buffer clearing options (colour, depth, stencil)
-- Real-time colour parameter adjustment
 
 ### testTexture2D Implementation
 
