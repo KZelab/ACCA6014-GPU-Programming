@@ -26,6 +26,31 @@ void Model::SetMeshData(const std::vector<Vertex>& vertices, const std::vector<u
     CalculateBounds();
 }
 
+void Model::CenterModelAtBase()
+{
+    if (m_Vertices.empty())
+        return;
+
+    // Calculate center offset (center X and Z, but keep feet at Y=0)
+    glm::vec3 boundsCenter = GetBoundsCenter();
+    glm::vec3 offset(boundsCenter.x, m_BoundsMin.y, boundsCenter.z);
+
+    std::cout << "Centering model - Original bounds center: (" << boundsCenter.x << ", " << boundsCenter.y << ", " << boundsCenter.z << ")" << std::endl;
+    std::cout << "                   Offset: (" << offset.x << ", " << offset.y << ", " << offset.z << ")" << std::endl;
+
+    // Shift all vertices to center the model
+    for (auto& vertex : m_Vertices)
+    {
+        vertex.position -= offset;
+    }
+
+    // Recalculate bounds after centering
+    CalculateBounds();
+
+    std::cout << "Model centered! New bounds: (" << m_BoundsMin.x << ", " << m_BoundsMin.y << ", " << m_BoundsMin.z << ") to ("
+              << m_BoundsMax.x << ", " << m_BoundsMax.y << ", " << m_BoundsMax.z << ")" << std::endl;
+}
+
 void Model::UploadToGPU()
 {
     if (m_Vertices.empty() || m_Indices.empty())

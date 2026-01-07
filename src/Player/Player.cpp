@@ -387,6 +387,11 @@ bool Player::LoadModel(const std::string& filepath)
         return false;
     }
 
+    // Center the model at its base (feet at Y=0, centered horizontally)
+    // This ensures rotation happens around the correct pivot point
+    std::cout << "Centering model at base..." << std::endl;
+    m_Model->CenterModelAtBase();
+
     std::cout << "Uploading model to GPU..." << std::endl;
     m_Model->UploadToGPU();
 
@@ -439,8 +444,10 @@ void Player::UpdateModelTransform()
 
     // Rotate model to match camera direction (character faces where camera looks)
     // In third-person, you'll see the character turn as you move the mouse
+    // Add 180-degree offset to align model's forward with camera's forward direction
     float cameraYaw = m_Camera.GetYaw();
-    m_Model->SetRotation(glm::vec3(0.0f, cameraYaw, 0.0f));
+    float modelYaw = cameraYaw + 180.0f;
+    m_Model->SetRotation(glm::vec3(0.0f, modelYaw, 0.0f));
 }
 
 void Player::ToggleCameraMode()

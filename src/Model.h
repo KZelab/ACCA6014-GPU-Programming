@@ -54,6 +54,9 @@ public:
     // Load mesh data
     void SetMeshData(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
+    // Center the model at origin (horizontally) with feet at Y=0
+    void CenterModelAtBase();
+
     // Upload mesh to GPU (call after SetMeshData)
     void UploadToGPU();
 
