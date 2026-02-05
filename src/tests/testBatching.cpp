@@ -1,8 +1,6 @@
 #include "testBatching.h"
-
-#include "TestBatching.h"
-#include "Renderer/Renderer.h"
-#include "vendor/imgui/imgui.h"
+#include "../Renderer.h"
+#include "../vendor/imgui/imgui.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace test {

@@ -1,5 +1,15 @@
 #include "Mesh.h"
 #include "../VertexBufferLayout.h"
+#include "GeometryFactory.h"
+
+
+
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
+	: m_Vertices(vertices), m_Indices(indices)
+{
+	SetupMesh();
+}
+
 
 Mesh::~Mesh()
 {
@@ -19,14 +29,15 @@ void Mesh::SetupMesh()
 	//set up the buffers
 
 	m_VAO = std::make_unique<VertexArray>();
-	m_VBO = std::make_unique<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(float));
+	m_VBO = std::make_unique<VertexBuffer>(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
 	m_EBO = std::make_unique<IndexBuffer>(m_Indices.data(), m_Indices.size());
 
 
 	VertexBufferLayout layout;
-	layout.Push<float>(3); //position z,y,z
-	layout.Push<float>(3); //normals n1, n2, n3
-	layout.Push<float>(2); //texture coordinates U V
+	layout.Push<float>(3); //position x,y,z
+	layout.Push<float>(3); //normals nx, ny, nz
+	layout.Push<float>(3); //colour r, g, b
+	layout.Push<float>(2); //texture coordinates u, v
 
 	m_VAO->AddBuffer(*m_VBO, layout);
 

@@ -9,9 +9,12 @@
 #include "VertexBufferLayout.h"     // Custom layout wrapper for vertex attributes
 #include "Renderer.h"               // Custom renderer wrapper
 #include "Shader.h"                 // Custom shader wrapper
-#include "Mesh/Cube.h"
 #include "tests/testEffects.h"
 #include "tests/TestLightingShader.h"
+#include "tests/TestMultipleLightSources.h"
+#include "tests/testProceduralArt.h"
+#include "tests/testProjections.h"
+#include "tests/TestPBR.h"
 #include "tests/testClearColour.h"
 #include "tests/testTexture2D.h"
 #include "tests/testRayCasting.h"
@@ -85,10 +88,13 @@ int main() {
 
         TestMenu->RegisterTest<test::testClearColour>("Test Clear Colour");
         TestMenu->RegisterTest<test::testTexture2D>("Test Texture2D");
-        TestMenu->RegisterTest<test::testRayCasting>("Test Ray Casting");
+        TestMenu->RegisterTest<test::TestRayCasting>("Test Ray Casting", window);
         TestMenu->RegisterTest<test::TestLightingShader>("Lighting shader", window);
+        TestMenu->RegisterTest<test::testMultipleLightSources>("Multiple light shader", window);
         TestMenu->RegisterTest<test::testEffects>("Effects shader", window);
-
+        TestMenu->RegisterTest<test::testProceduralArt>("Art shader", window);
+        TestMenu->RegisterTest<test::TestPBR>("PBR Rendering", window);
+        TestMenu->RegisterTest<test::TestProjections>("Projections", window);
 
         float lastTimeFrame = 0.0f;
         float deltaTime = 0.0f;

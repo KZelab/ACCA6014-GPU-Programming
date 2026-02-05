@@ -15,6 +15,7 @@ void main() {
     fragColor = aColor; // Pass the color to the fragment shader
 }
 
+
 #shader fragment // Specifies the fragment shader section
 #version 330 core
 

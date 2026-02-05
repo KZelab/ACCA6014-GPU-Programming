@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include "Tests.h"
-#include "../buffers/VertexBuffer.h"
-#include "../buffers/VertexBufferLayout.h"
-#include "../buffers/IndexBuffer.h"
-#include "../buffers/VertexArray.h"
-#include "../buffers/Shader.h"
+#include "../VertexBuffer.h"
+#include "../VertexBufferLayout.h"
+#include "../IndexBuffer.h"
+#include "../VertexArray.h"
+#include "../Shader.h"
 
 
 #include "GL/glew.h"

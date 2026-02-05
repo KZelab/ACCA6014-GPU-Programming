@@ -1,6 +1,6 @@
 #include "TestRayCasting.h"
-#include "Renderer/Renderer.h"
-#include "vendor/imgui/imgui.h"
+#include "../Renderer.h"
+#include "../vendor/imgui/imgui.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 

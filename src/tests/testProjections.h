@@ -1,13 +1,14 @@
 #pragma once
 #include "Tests.h"
 
-#include "../buffers/VertexBuffer.h"
-#include "../buffers/VertexBufferLayout.h"
-#include "../buffers/IndexBuffer.h"
-#include "../buffers/VertexArray.h"
-#include "../buffers/Shader.h"
+#include "../VertexBuffer.h"
+#include "../VertexBufferLayout.h"
+#include "../IndexBuffer.h"
+#include "../VertexArray.h"
+#include "../Shader.h"
 
 #include <memory>
+#include "../Mesh/GeometryFactory.h"
 
 namespace test
 {
@@ -23,12 +24,10 @@ namespace test
 	private:
         bool useOrthographic;
 
-        std::unique_ptr<VertexArray> m_VAO;
-        std::unique_ptr<IndexBuffer> m_IndexBuffer;
         std::unique_ptr<Shader> m_Shader;
-        std::unique_ptr<VertexBuffer> m_VBO;
 
 
+		std::unique_ptr<Mesh> m_Cube;
 	};
 
 

@@ -200,52 +200,48 @@ void main()
     else if(u_Effect == 7)
     {
     //venezuela :)))))))
-     if(v_TexCoords.y < 0.33)
-    {
-        
-        result = vec4(1.0, 0.0, 0.0, 1.0);
-    }
-    else if(v_TexCoords.y > 0.33 && v_TexCoords.y < 0.66)
-    {
-        
-        
-         result = vec4(0.0, 0.0, 1.0, 1.0);
-    }
-     else
-    {
-         result = vec4(1.0, 1.0, 0.0, 1.0);
-     }
+        if(v_TexCoords.y < 0.33)
+        {       
+            result = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+        else if(v_TexCoords.y > 0.33 && v_TexCoords.y < 0.66)
+        {
+            result = vec4(0.0, 0.0, 1.0, 1.0);
+        }
+         else
+        { 
+            result = vec4(1.0, 1.0, 0.0, 1.0);
+        }
     }
     else if (u_Effect == 8)
     {
 
-    //Romania :))) 
-     if(v_TexCoords.x < 0.33)
-    {
-        result = vec4(0.0, 0.0, 1.0, 1.0);
-   }
- else if(v_TexCoords.x > 0.33 && v_TexCoords.x < 0.66)
-    {
-        result = vec4(1.0, 1.0, 0.0, 1.0);
-     }
-    else
-     {
-        result = vec4(1.0, 0.0, 0.0, 1.0);
-    }
+        //Romania :))) 
+        if(v_TexCoords.x < 0.33)
+        {
+            result = vec4(0.0, 0.0, 1.0, 1.0);
+        }
+        else if(v_TexCoords.x > 0.33 && v_TexCoords.x < 0.66)
+        {
+            result = vec4(1.0, 1.0, 0.0, 1.0);
+        }
+        else
+        {
+            result = vec4(1.0, 0.0, 0.0, 1.0);
+        }
     }else if (u_Effect == 9)
     {
-           //central square inverted
-      if(v_TexCoords.x > 0.33 && v_TexCoords.x < 0.66 
-     && v_TexCoords.y > 0.33 && v_TexCoords.y < 0.66)
-     {
-         result = applyColourInversion();
+       //central square inverted
+       if(v_TexCoords.x > 0.33 && v_TexCoords.x < 0.66 
+         && v_TexCoords.y > 0.33 && v_TexCoords.y < 0.66)
+        {
+             result = applyColourInversion();
+        }
+        else
+        {
+            result = applyBlur();
+        }
     }
-    else
-    {
-        result = applyBlur();
-    }
-    }
-
 
     FragColor = mix(baseColour, result, u_Opacity);
 }

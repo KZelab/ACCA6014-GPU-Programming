@@ -1,13 +1,14 @@
-﻿#pragma once
+#pragma once
 #include "Tests.h"
-#include "buffers/Shader.h"
+#include "../Shader.h"
+#include "../Mesh/GeometryFactory.h"
+#include "../utils/Camera.h"
+#include "../Renderer.h"
 #include <memory>
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>
-
-#include "utils/Camera.h"
 #include "glm/glm.hpp"
-#include "MeshGenerator/Sphere.h"
+
 namespace test {
 
     // Enum to represent different light types
@@ -37,9 +38,11 @@ namespace test {
         void RenderGUI() override;
 
     private:
-        GLFWwindow* m_window;
+        GLFWwindow* m_Window;
 
-        Camera camera;
+        std::unique_ptr<Camera> m_Camera;
+        std::unique_ptr<Mesh> m_Sphere;
+        std::unique_ptr<Shader> m_Shader;
 
         // Material and scene lighting parameters
         float m_AmbientIntensity;
@@ -52,10 +55,7 @@ namespace test {
         glm::mat4 m_View;
         glm::mat4 m_Projection;
 
-        std::unique_ptr<Sphere> sphere;
-        std::unique_ptr<Shader> m_Shader;
-
         std::vector<Light> m_Lights; // All active lights
-        int selectedLightIndex = 0;  // Light being edited in ImGui
+        int m_SelectedLightIndex = 0;  // Light being edited in ImGui
     };
 }

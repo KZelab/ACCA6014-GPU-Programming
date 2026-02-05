@@ -4,8 +4,9 @@
 #include <GLFW/glfw3.h>
 
 #include "Tests.h"
-#include "../Mesh/FullscreenQuad.h"
+#include "../Mesh/GeometryFactory.h"
 #include "../Texture.h"
+#include "../Shader.h"
 
 
 namespace test
@@ -22,7 +23,7 @@ namespace test
 	private:
 		GLFWwindow* m_Window;
 
-		std::unique_ptr<FullscreenQuad> m_Quad;
+		std::unique_ptr<Mesh> m_Quad;
 		std::unique_ptr<Texture> m_Texture;
 		std::unique_ptr<Shader> m_Shader;
 

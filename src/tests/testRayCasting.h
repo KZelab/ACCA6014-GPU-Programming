@@ -1,10 +1,10 @@
 #pragma once
 #include "Tests.h"
-#include "../buffers/VertexBuffer.h"
-#include "../buffers/VertexBufferLayout.h"
-#include "../buffers/IndexBuffer.h"
-#include "../buffers/VertexArray.h"
-#include "../buffers/Shader.h"
+#include "../VertexBuffer.h"
+#include "../VertexBufferLayout.h"
+#include "../IndexBuffer.h"
+#include "../VertexArray.h"
+#include "../Shader.h"
 #include "gl/glew.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
@@ -16,6 +16,7 @@
 
 namespace test {
     class TestRayCasting : public Tests {
+
     public:
         TestRayCasting(GLFWwindow* window);
         void Update(float deltaTime) override;

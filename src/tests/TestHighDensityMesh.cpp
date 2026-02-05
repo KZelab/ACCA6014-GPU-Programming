@@ -1,5 +1,5 @@
 ﻿#include "TestHighDensityMesh.h"
-#include "../Renderer/Renderer.h"
+#include "../Renderer.h"
 #include "imgui.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -11,7 +11,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "../buffers/VertexBufferLayout.h"
+#include "../VertexBufferLayout.h"
 namespace test {
 
     TestHighDensityMesh::TestHighDensityMesh(GLFWwindow* window)

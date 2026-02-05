@@ -1,43 +1,42 @@
-﻿#include "testMultipleLightSources.h"
+#include "testMultipleLightSources.h"
 
 #include <glm/gtc/type_ptr.inl>
 
-#include "imgui/imgui.h"
-#include "MeshGenerator/Sphere.h"
+#include "../vendor/imgui/imgui.h"
 
 
 test::testMultipleLightSources::testMultipleLightSources(GLFWwindow* window) :
-    camera(window, glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 45.0f), // Adjusted camera position
-    m_AmbientIntensity(0.2f),  // Balanced ambient light
-    m_DiffuseIntensity(0.7f),  // Stronger diffuse light for depth
-    m_SpecularIntensity(0.8f), // Controlled specular reflections
-    m_Shininess(32.0f),        // Default shininess for plastic-like material
-    m_window(window)
-
+    m_Window(window),
+    m_AmbientIntensity(0.2f),
+    m_DiffuseIntensity(0.7f),
+    m_SpecularIntensity(0.8f),
+    m_Shininess(32.0f)
 {
-    // Load Phongs lighting shaders and shading
+    m_Camera = std::make_unique<Camera>(
+        window,
+        glm::vec3(0.0f, 0.0f, 5.0f),  // position
+        glm::vec3(0.0f, 1.0f, 0.0f),  // up vector
+        -90.0f,                        // yaw
+        0.0f,                          // pitch
+        45.0f                          // FOV
+    );
+
     m_Shader = std::make_unique<Shader>("res/shaders/PhongMultiple.shader");
-
-    sphere = std::make_unique<Sphere>(10, 10);
-
-
-    m_Shader->Unbind();
+    m_Sphere = GeometryFactory::CreateSphere(20, 20);
 
     glEnable(GL_DEPTH_TEST);
-
-
 }
 
 void test::testMultipleLightSources::Update(float deltaTime)
 {
-    camera.processInput(deltaTime);
-    camera.Update(deltaTime);
+    m_Camera->processInput(deltaTime);
+    m_Camera->Update(deltaTime);
 
     m_Model = glm::mat4(1.0f);
-    float angle = glfwGetTime() * 20.0f; // Rotate at 20 degrees per second
+    float angle = static_cast<float>(glfwGetTime()) * 20.0f;
     m_Model = glm::rotate(m_Model, glm::radians(angle), glm::vec3(0, 1, 0));
-    m_View = camera.GetViewMatrix();
-    m_Projection = glm::perspective(glm::radians(camera.GetFOV()), 800.0f / 600.0f, 0.1f, 1000.0f);
+    m_View = m_Camera->getViewMatrix();
+    m_Projection = glm::perspective(glm::radians(m_Camera->getFOV()), 800.0f / 600.0f, 0.1f, 1000.0f);
 }
 
 
@@ -51,7 +50,9 @@ void test::testMultipleLightSources::Render()
     m_Shader->setUniformMat4f("u_Model", m_Model);
     m_Shader->setUniformMat4f("u_View", m_View);
     m_Shader->setUniformMat4f("u_Projection", m_Projection);
-    m_Shader->setUniform3f("uCameraPosition", camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
+
+    glm::vec3 camPos = m_Camera->getPosition();
+    m_Shader->setUniform3f("uCameraPosition", camPos.x, camPos.y, camPos.z);
 
     m_Shader->setUniform1f("uAmbientIntensity", m_AmbientIntensity);
     m_Shader->setUniform1f("uDiffuseIntensity", m_DiffuseIntensity);
@@ -59,7 +60,7 @@ void test::testMultipleLightSources::Render()
     m_Shader->setUniform1f("uShininess", m_Shininess);
 
     m_Shader->setUniform1i("uLightCount", static_cast<int>(m_Lights.size()));
-    for (int i = 0; i < m_Lights.size(); ++i) {
+    for (size_t i = 0; i < m_Lights.size(); ++i) {
         const auto& light = m_Lights[i];
         std::string prefix = "uLights[" + std::to_string(i) + "]";
         m_Shader->setUniform3f(prefix + ".position", light.position.x, light.position.y, light.position.z);
@@ -70,8 +71,8 @@ void test::testMultipleLightSources::Render()
         m_Shader->setUniform1f(prefix + ".cutoff", light.cutoff);
     }
 
-    sphere->setPosition(glm::vec3(0, 0, 0));
-    sphere->Draw();
+    m_Sphere->setPosition(glm::vec3(0, 0, 0));
+    m_Sphere->Draw();
 }
 
 void test::testMultipleLightSources::RenderGUI()
@@ -83,8 +84,8 @@ void test::testMultipleLightSources::RenderGUI()
     }
 
     if (!m_Lights.empty()) {
-        ImGui::SliderInt("Selected Light", &selectedLightIndex, 0, static_cast<int>(m_Lights.size()) - 1);
-        Light& light = m_Lights[selectedLightIndex];
+        ImGui::SliderInt("Selected Light", &m_SelectedLightIndex, 0, static_cast<int>(m_Lights.size()) - 1);
+        Light& light = m_Lights[m_SelectedLightIndex];
 
         const char* types[] = { "Point", "Directional", "Spot" };
         int type = static_cast<int>(light.type);
@@ -103,8 +104,8 @@ void test::testMultipleLightSources::RenderGUI()
         }
 
         if (ImGui::Button("Remove Light")) {
-            m_Lights.erase(m_Lights.begin() + selectedLightIndex);
-            selectedLightIndex = std::max(0, selectedLightIndex - 1);
+            m_Lights.erase(m_Lights.begin() + m_SelectedLightIndex);
+            m_SelectedLightIndex = std::max(0, m_SelectedLightIndex - 1);
         }
     }
 }

@@ -19,13 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Mesh\Cube.cpp" />
-    <ClCompile Include="src\Mesh\FullscreenQuad.cpp" />
+    <ClCompile Include="src\Mesh\GeometryFactory.cpp" />
     <ClCompile Include="src\Mesh\Mesh.cpp" />
-    <ClCompile Include="src\Mesh\Sphere.cpp" />
+    <ClCompile Include="src\tests\testBatching.cpp" />
+    <ClCompile Include="src\tests\testCamera.cpp" />
     <ClCompile Include="src\tests\testEffects.cpp" />
     <ClCompile Include="src\tests\TestLightingShader.cpp" />
     <ClCompile Include="src\tests\testClearColour.cpp" />
+    <ClCompile Include="src\tests\testMultipleLightSources.cpp" />
+    <ClCompile Include="src\tests\TestPBR.cpp" />
+    <ClCompile Include="src\tests\testProjections.cpp" />
+    <ClCompile Include="src\tests\testProceduralArt.cpp" />
     <ClCompile Include="src\tests\testTexture2D.cpp" />
     <ClCompile Include="src\tests\testRayCasting.cpp" />
     <ClCompile Include="src\utils\Camera.cpp" />
@@ -47,13 +51,18 @@
     <ClCompile Include="src\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Mesh\Cube.h" />
-    <ClInclude Include="src\Mesh\FullscreenQuad.h" />
+    <ClInclude Include="src\Mesh\GeometryFactory.h" />
     <ClInclude Include="src\Mesh\Mesh.h" />
-    <ClInclude Include="src\Mesh\Sphere.h" />
+    <ClInclude Include="src\Mesh\Vertex.h" />
+    <ClInclude Include="src\tests\testBatching.h" />
+    <ClInclude Include="src\tests\testCamera.h" />
     <ClInclude Include="src\tests\testEffects.h" />
     <ClInclude Include="src\tests\TestLightingShader.h" />
     <ClInclude Include="src\tests\testClearColour.h" />
+    <ClInclude Include="src\tests\testMultipleLightSources.h" />
+    <ClInclude Include="src\tests\TestPBR.h" />
+    <ClInclude Include="src\tests\testProjections.h" />
+    <ClInclude Include="src\tests\testProceduralArt.h" />
     <ClInclude Include="src\tests\testTexture2D.h" />
     <ClInclude Include="src\tests\testRayCasting.h" />
     <ClInclude Include="src\utils\Camera.h" />
@@ -76,6 +85,9 @@
     <ClInclude Include="src\VertexArray.h" />
     <ClInclude Include="src\VertexBuffer.h" />
     <ClInclude Include="src\VertexBufferLayout.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\TopenGL\res\Shaders\BatchShader.shader" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

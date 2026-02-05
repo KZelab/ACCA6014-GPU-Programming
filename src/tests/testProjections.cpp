@@ -1,6 +1,6 @@
 #include "testProjections.h"
-#include "Renderer/Renderer.h"
-#include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
+#include "../Renderer.h"
+#include "../vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 #include <GL/glew.h>     
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"              // GLM for mathematical operations and matrix manipulation
@@ -11,53 +11,18 @@ namespace test
     {
 
         useOrthographic = true;
-        // Vertex data for a simple cube
-        const float vertices[] = {
-            // Positions           // Colors
-            -0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f, // Bottom-left
-             0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f, // Bottom-right
-             0.5f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f, // Top-right
-            -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f, // Top-left
-            -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f, // Bottom-left (front)
-             0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f, // Bottom-right (front)
-             0.5f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f, // Top-right (front)
-            -0.5f,  0.5f,  0.5f,   0.5f, 0.5f, 0.5f  // Top-left (front)
-        };
 
-        // Cube indices for drawing with Element Buffer
-        const unsigned int indices[] = {
-            0, 1, 2, 2, 3, 0,
-            4, 5, 6, 6, 7, 4,
-            4, 5, 1, 1, 0, 4,
-            7, 6, 2, 2, 3, 7,
-            4, 7, 3, 3, 0, 4,
-            1, 5, 6, 6, 2, 1
-        };
 
         m_Shader = std::make_unique<Shader>(R"(res/Shaders/ProjectionsShader.shader)");
 
-        m_VAO = std::make_unique<VertexArray>();
 
-        m_VBO = std::make_unique<VertexBuffer>(vertices, 48 * sizeof(float));// Vertex Buffer Object (VBO) to manage the vertices in GPU memory
-
-
-        VertexBufferLayout layout;
-        layout.Push<float>(3); 
-        layout.Push<float>(3);
-        m_VAO->AddBuffer(*m_VBO, layout);
-
-
-        m_IndexBuffer = std::make_unique<IndexBuffer>(indices, 36);
+        m_Cube = GeometryFactory::CreateCube();
 
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
 
         // Unbind objects to prevent accidental modifications or conflicts
-        m_VAO->unBind();     // Unbind Vertex Array Object to prevent accidental reuse
         m_Shader->Unbind(); // Unbind Shader Program to ensure clean state
-        m_VBO->Unbind();     // Unbind Vertex Buffer
-        m_IndexBuffer->Unbind();     // Unbind Index Buffer
-
 	}
 	void TestProjections::Update(float deltaTime)
 	{
@@ -92,9 +57,9 @@ namespace test
             std::cout << "perspective mode \n";
             projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
         }
-        m_VAO->Bind();
-        m_Shader->setUniformMat4f("projection", projection);
-        renderer.Draw(*m_VAO, *m_IndexBuffer, *m_Shader); // Draw object A
+        m_Shader->setUniformMat4f("projection", projection); 
+
+        m_Cube->Draw();
 
 
 	}

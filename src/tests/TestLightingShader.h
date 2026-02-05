@@ -1,12 +1,13 @@
-﻿#pragma once
-#include "GL/glew.h"
-#include <GLFW/glfw3.h>
+#pragma once
 #include "Tests.h"
+#include "../Shader.h"
+#include "../Mesh/GeometryFactory.h"
 #include "../utils/Camera.h"
 #include <memory>
-#include "../Shader.h"
+#include "GL/glew.h"
+#include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
-#include "../Mesh/Sphere.h"
+
 namespace test
 {
 	class TestLightingShader : public Tests
@@ -17,32 +18,34 @@ namespace test
 		void Update(float deltaTime) override;
 		void Render() override;
 		void RenderGUI() override;
+
 	private:
 		GLFWwindow* m_Window;
-		Camera camera;
-		//lighting paramaters
+
+		std::unique_ptr<Camera> m_Camera;
+		std::unique_ptr<Mesh> m_Sphere;
+		std::unique_ptr<Shader> m_PhongShader;
+		std::unique_ptr<Shader> m_FlatShader;
+		std::unique_ptr<Shader> m_GouraudShader;
+		std::unique_ptr<Shader> m_BlinnPhongShader;
+
+		// Lighting parameters
 		float m_AmbientIntensity;
 		float m_DiffuseIntensity;
 		float m_SpecularIntensity;
 		float m_Shininess;
-		//Light source properties
-		glm::vec3 m_LightPositon;
+
+		// Light source properties
+		glm::vec3 m_LightPosition;
 		glm::vec3 m_LightColour;
 
-
-		//Transformations
+		// Transformations
 		glm::mat4 m_Model;
 		glm::mat4 m_View;
 		glm::mat4 m_Projection;
 
-		std::unique_ptr<Sphere> sphere;
-
-		std::unique_ptr<Shader> m_PhongsShader;
-		std::unique_ptr<Shader> m_FlatShader;
-		std::unique_ptr<Shader> m_Gouraud;
-		std::unique_ptr<Shader> m_BlinnPhong;
-
-		int m_CurrentShader; //0 Phong, 1 flat, 2 Gouraud, 3 Blinn-Phong
+		int m_CurrentShader = 0; // 0: Phong, 1: Flat, 2: Gouraud, 3: Blinn-Phong
+		bool m_Wireframe = false;
 	};
 }
 

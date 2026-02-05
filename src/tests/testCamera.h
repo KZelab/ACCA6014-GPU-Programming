@@ -1,10 +1,8 @@
 #pragma once
 #include "Tests.h"
-#include "../buffers/VertexBuffer.h"
-#include "../buffers/VertexBufferLayout.h"
-#include "../buffers/IndexBuffer.h"
-#include "../buffers/VertexArray.h"
-#include "../buffers/Shader.h"
+#include "../Shader.h"
+#include "../Mesh/GeometryFactory.h"
+#include "../utils/Camera.h"
 #include <memory>
 #include "GL/glew.h"
 #include <GLFW/glfw3.h>
@@ -23,18 +21,8 @@ namespace test {
     private:
         GLFWwindow* m_window;
 
-        glm::vec3 cameraPosition;
-        glm::vec3 cameraFront;
-        glm::vec3 cameraUp;
-
-        float cameraSpeed;
-
-
-        std::unique_ptr<VertexArray> m_VAO;
-        std::unique_ptr<IndexBuffer> m_IndexBuffer;
+        std::unique_ptr<Camera> m_Camera;
+        std::unique_ptr<Mesh> m_Cube;
         std::unique_ptr<Shader> m_Shader;
-        std::unique_ptr<VertexBuffer> m_VBO;
-
-        void ProcessInput();
     };
 }

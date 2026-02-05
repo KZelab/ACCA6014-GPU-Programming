@@ -4,7 +4,9 @@
 test::testEffects::testEffects(GLFWwindow* window)
 {
 	m_Shader = std::make_unique<Shader>("res/shaders/effect.shader");
-	m_Quad = std::make_unique<FullscreenQuad>();
+
+	m_Quad = GeometryFactory::CreateFullscreenQuad();
+
 	m_Texture = std::make_unique<Texture>("res/Textures/1.png");
 
 	m_Shader->Bind();
