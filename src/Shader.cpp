@@ -74,7 +74,7 @@ unsigned int Shader::getUniformLocation(const std::string& name)
 ShaderProgramSource Shader::parseShaders(const std::string& filepath)
 {
     if (!std::filesystem::exists(filepath)) {
-        std::cout << "File does not exist." << std::endl;
+        std::cerr << "File does not exist." << std::endl;
     }
 
     std::ifstream stream(filepath);

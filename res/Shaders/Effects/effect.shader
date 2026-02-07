@@ -2,9 +2,10 @@
 #version 330 core // Using GLSL version 3.30, compatible with OpenGL 3.3
 
 
-layout(location = 0) in vec3 aPosition; //vertex positon 
+layout(location = 0) in vec3 aPosition; //vertex positon
 layout(location = 1) in vec3 aNormal;   //Vertex Normal
-layout(location = 2) in vec2 aTextureCoords; //Texture Coordinates
+layout(location = 2) in vec3 aColour;   //Vertex Colour (unused but must match layout)
+layout(location = 3) in vec2 aTextureCoords; //Texture Coordinates
 
 out vec2 v_TexCoords; //output to the fragment shader
 

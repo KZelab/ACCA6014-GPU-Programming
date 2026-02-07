@@ -92,8 +92,8 @@ namespace test
 	void testTexture2D::RenderGUI()
 	{
         // ImGui sliders to control object positions
-        ImGui::SliderFloat3("Translation A", &m_TranslationA.x, 50.0f, 960.0f); // Adjust translation for A
-        ImGui::SliderFloat3("Translation B", &m_TranslationB.x, 50.0f, 960.0f); // Adjust translation for B
+        ImGui::SliderFloat3("Translation A", &m_TranslationA.x, 0.0f, 960.0f); // Adjust translation for A
+        ImGui::SliderFloat3("Translation B", &m_TranslationB.x, 0.0f, 960.0f); // Adjust translation for B
 
         // Display framerate information
         float rate = ImGui::GetIO().Framerate;

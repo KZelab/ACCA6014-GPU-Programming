@@ -18,6 +18,7 @@
 #include "tests/testClearColour.h"
 #include "tests/testTexture2D.h"
 #include "tests/testRayCasting.h"
+#include "tests/TestParticleSystem.h"
 #include "tests/Tests.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
@@ -41,7 +42,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core profile
 
     // Create a windowed mode window and OpenGL context
-    GLFWwindow* window = glfwCreateWindow(960, 540, "GLFW Window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "GLFW Window", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -94,7 +95,8 @@ int main() {
         TestMenu->RegisterTest<test::testEffects>("Effects shader", window);
         TestMenu->RegisterTest<test::testProceduralArt>("Art shader", window);
         TestMenu->RegisterTest<test::TestPBR>("PBR Rendering", window);
-        TestMenu->RegisterTest<test::TestProjections>("Projections", window);
+        TestMenu->RegisterTest<test::TestProjections>("Projections");
+        TestMenu->RegisterTest<test::TestParticleSystem>("Particle System", window);
 
         float lastTimeFrame = 0.0f;
         float deltaTime = 0.0f;

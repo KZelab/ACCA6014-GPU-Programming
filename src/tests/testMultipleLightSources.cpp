@@ -21,7 +21,8 @@ test::testMultipleLightSources::testMultipleLightSources(GLFWwindow* window) :
         45.0f                          // FOV
     );
 
-    m_Shader = std::make_unique<Shader>("res/shaders/PhongMultiple.shader");
+    m_Shader = std::make_unique<Shader>("res/shaders/Lighting/PhongMultiple.shader");
+
     m_Sphere = GeometryFactory::CreateSphere(20, 20);
 
     glEnable(GL_DEPTH_TEST);

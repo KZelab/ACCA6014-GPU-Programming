@@ -3,7 +3,7 @@
 
 test::testEffects::testEffects(GLFWwindow* window)
 {
-	m_Shader = std::make_unique<Shader>("res/shaders/effect.shader");
+	m_Shader = std::make_unique<Shader>("res/shaders/effects/effect.shader");
 
 	m_Quad = GeometryFactory::CreateFullscreenQuad();
 

@@ -22,6 +22,7 @@
     <ClCompile Include="src\Mesh\GeometryFactory.cpp" />
     <ClCompile Include="src\Mesh\Mesh.cpp" />
     <ClCompile Include="src\tests\testBatching.cpp" />
+    <ClCompile Include="src\tests\TestParticleSystem.cpp" />
     <ClCompile Include="src\tests\testCamera.cpp" />
     <ClCompile Include="src\tests\testEffects.cpp" />
     <ClCompile Include="src\tests\TestLightingShader.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="src\Mesh\Mesh.h" />
     <ClInclude Include="src\Mesh\Vertex.h" />
     <ClInclude Include="src\tests\testBatching.h" />
+    <ClInclude Include="src\tests\TestParticleSystem.h" />
     <ClInclude Include="src\tests\testCamera.h" />
     <ClInclude Include="src\tests\testEffects.h" />
     <ClInclude Include="src\tests\TestLightingShader.h" />

@@ -21,10 +21,10 @@ test::TestLightingShader::TestLightingShader(GLFWwindow* window)
 		45.0f                          // FOV
 	);
 
-	m_PhongShader = std::make_unique<Shader>("res/shaders/Phong.shader");
-	m_FlatShader = std::make_unique<Shader>("res/shaders/Flat.shader");
-	m_GouraudShader = std::make_unique<Shader>("res/shaders/Gouraud.shader");
-	m_BlinnPhongShader = std::make_unique<Shader>("res/shaders/Blinn-Phong.shader");
+	m_PhongShader = std::make_unique<Shader>("res/shaders/Lighting/Phong.shader");
+	m_FlatShader = std::make_unique<Shader>("res/shaders/Lighting/Flat.shader");
+	m_GouraudShader = std::make_unique<Shader>("res/shaders/Lighting/Gouraud.shader");
+	m_BlinnPhongShader = std::make_unique<Shader>("res/shaders/Lighting/Blinn-Phong.shader");
 
 	m_Sphere = GeometryFactory::CreateSphere(20, 20);
 

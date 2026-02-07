@@ -7,8 +7,10 @@ private:
 	unsigned int m_RendererID;
 public:
 	VertexBuffer(const void* data, unsigned int size);
+	VertexBuffer(unsigned int size); // Allocates empty buffer with GL_DYNAMIC_DRAW
 	~VertexBuffer();
 
 	void Bind() const;
 	void Unbind() const;
+	void Update(const void* data, unsigned int size, unsigned int offset = 0) const;
 };

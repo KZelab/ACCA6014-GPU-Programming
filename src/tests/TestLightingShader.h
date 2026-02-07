@@ -44,7 +44,7 @@ namespace test
 		glm::mat4 m_View;
 		glm::mat4 m_Projection;
 
-		int m_CurrentShader = 0; // 0: Phong, 1: Flat, 2: Gouraud, 3: Blinn-Phong
+		int m_CurrentShader = 0; // 0: Phong, 1: Flat, 2: Gouraud, 3: Blinn-Phong, 4: PBR
 		bool m_Wireframe = false;
 	};
 }
