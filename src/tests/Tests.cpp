@@ -1,9 +1,15 @@
 #include "Tests.h"
-#include "../vendor/imgui/imgui.h" 
+#include "DefaultScene.h"
+#include "../vendor/imgui/imgui.h"
 
 
 namespace test
 {
+    void Tests::InitDefaultScene()
+    {
+        m_DefaultScene = std::make_unique<DefaultScene>();
+    }
+
 	TestMenu::TestMenu(Tests*& currentTestPointer) : m_CurrentTest(currentTestPointer)
 	{
 

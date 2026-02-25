@@ -19,6 +19,7 @@
 #include "Camera.h"
 #include <iostream>
 
+#include <imgui.h>
 // =============================================================================
 // CONSTRUCTOR
 // =============================================================================
@@ -126,6 +127,8 @@ void Camera::UpdateCameraVectors()
     right = glm::normalize(glm::cross(front, worldUp));
     up = glm::normalize(glm::cross(right, front));
 }
+
+
 
 // =============================================================================
 // INPUT PROCESSING
@@ -464,4 +467,9 @@ void Camera::Orbit(float angleX, float angleY)
 
     // Update direction vectors to face the new position
     UpdateCameraVectors();
+}
+void Camera::cameraGUI()
+{
+    ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", position.x, position.y, position.z);
+    ImGui::Text("Camera Detached: %s", isDetached() ? "yes (ESC to reattach)" : "no");
 }

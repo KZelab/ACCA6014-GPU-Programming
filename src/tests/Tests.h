@@ -37,6 +37,9 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <memory>
+
+#include "DefaultScene.h"
 
 namespace test
 {
@@ -72,6 +75,13 @@ namespace test
         virtual void Update(float deltaTime) {}  // Called each frame for logic
         virtual void Render() {}                 // Called each frame for drawing
         virtual void RenderGUI() {}              // Called for ImGui interface
+
+    protected:
+        // Null unless InitDefaultScene() was called in the child's constructor.
+        std::unique_ptr<DefaultScene> m_DefaultScene;
+
+        // Call once in a child test's constructor to activate the default scene.
+        void InitDefaultScene();
     };
 
 
@@ -156,26 +166,20 @@ namespace test
             m_Tests.push_back(std::make_pair(name, []() -> Tests* { return new T(); }));
         }
 
-        // =====================================================================
         // ADVANCED REGISTRATION (With Constructor Arguments)
-        // =====================================================================
         /**
          * RegisterTest<T, Args...>(name, args...) - Register test with constructor args
          *
-         * This is where the "crazy code" lives. Let's break it down piece by piece.
+         * This is where the crazy code lives. Let's break it down piece by piece.
          *
-         * -------------------------------------------------------------------------
          * VARIADIC TEMPLATES (typename... Args)
-         * -------------------------------------------------------------------------
          * The "..." creates a PARAMETER PACK - zero or more template arguments.
          *
          *   RegisterTest<TestFoo>("Foo", 42, 3.14f, "hello");
          *   // Args = {int, float, const char*}
          *   // args = {42, 3.14f, "hello"}
-         *
-         * -------------------------------------------------------------------------
-         * PERFECT FORWARDING (std::forward<Args>(args)...)
-         * -------------------------------------------------------------------------
+         * 
+         * PERFECT FORWARDING (std::forward<Args>(args         
          * Preserves the VALUE CATEGORY (lvalue vs rvalue) of each argument.
          *
          * Problem it solves:
@@ -192,9 +196,7 @@ namespace test
          *   - T& if x was an lvalue (passed as lvalue)
          *   - T&& if x was an rvalue (passed as rvalue, enabling move semantics)
          *
-         * -------------------------------------------------------------------------
-         * CAPTURING ARGUMENTS IN LAMBDA (The Tricky Part)
-         * -------------------------------------------------------------------------
+         * CAPTURING ARGUMENTS IN LAMBDA is The Tricky Part
          * Problem: We need to STORE the arguments now, but USE them later.
          *
          *   // This WON'T work - args is a parameter pack, can't capture directly

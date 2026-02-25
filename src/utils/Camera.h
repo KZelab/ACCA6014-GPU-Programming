@@ -59,6 +59,7 @@ public:
     float getFOV() const { return fov; }
     glm::vec3 getPosition() const { return position; }
     bool isDetached() const { return detached; }
+    void cameraGUI();
 
 private:
     GLFWwindow* m_window;
@@ -151,4 +152,6 @@ private:
      * Must be called whenever yaw or pitch changes.
      */
     void UpdateCameraVectors();
+
+    
 };

@@ -66,9 +66,6 @@
     <ClCompile Include="src\utils\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\tests\TestLightingShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -84,16 +81,10 @@
     <ClCompile Include="src\tests\testRayCasting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tests\testShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\tests\testProjections.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\tests\testMultipleLightSources.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tests\TestHighDensityMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\tests\testCamera.cpp">
@@ -102,7 +93,43 @@
     <ClCompile Include="src\tests\testBatching.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\TestGPUParticles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ComputeShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Framebuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestShadowMapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestPBR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\testProceduralArt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestHighDensityMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Mesh\GeometryFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\ModelMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\DefaultScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -167,9 +194,6 @@
     <ClInclude Include="src\utils\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\tests\TestLightingShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -185,16 +209,10 @@
     <ClInclude Include="src\tests\testRayCasting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tests\testShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\tests\testProjections.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\testMultipleLightSources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tests\TestHighDensityMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\testCamera.h">
@@ -203,8 +221,50 @@
     <ClInclude Include="src\tests\testBatching.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\tests\TestGPUParticles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ComputeShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestParticleSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestPBR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framebuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestShadowMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\testProceduralArt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestHighDensityMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Mesh\GeometryFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Mesh\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh\ModelMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh\Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\DefaultScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\TopenGL\res\Shaders\BatchShader.shader" />
   </ItemGroup>
 </Project>

@@ -19,11 +19,15 @@
 #include "tests/testTexture2D.h"
 #include "tests/testRayCasting.h"
 #include "tests/TestParticleSystem.h"
+#include "tests/TestGPUParticles.h"
+#include "tests/TestShadowMapping.h"
 #include "tests/Tests.h"
 
 #include "vendor/imgui/imgui.h"     // Dear ImGui library for GUI elements
 #include "vendor/imgui/imgui_impl_glfw.h" // ImGui GLFW backend
 #include "vendor/imgui/imgui_impl_opengl3.h" // ImGui OpenGL backend
+#include "tests/testCamera.h"
+#include "tests/TestHighDensityMesh.h"
 
 
 
@@ -37,8 +41,8 @@ int main() {
     }
 
     // Set GLFW window hints for OpenGL version and profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Major version 3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Minor version 3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Major version 4
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // Minor version 3 (OpenGL 4.3 for compute shaders)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core profile
 
     // Create a windowed mode window and OpenGL context
@@ -97,7 +101,10 @@ int main() {
         TestMenu->RegisterTest<test::TestPBR>("PBR Rendering", window);
         TestMenu->RegisterTest<test::TestProjections>("Projections");
         TestMenu->RegisterTest<test::TestParticleSystem>("Particle System", window);
-
+        TestMenu->RegisterTest<test::TestGPUParticles>("GPU Particles", window);
+        TestMenu->RegisterTest<test::TestShadowMapping>("Shadow Mapping", window);
+		TestMenu->RegisterTest<test::TestHighDensityMesh>("High Density Mesh", window);
+		TestMenu->RegisterTest<test::TestCamera>("Camera", window);
         float lastTimeFrame = 0.0f;
         float deltaTime = 0.0f;
 
